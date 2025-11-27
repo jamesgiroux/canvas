@@ -326,10 +326,11 @@ class Items_Controller extends Base_Controller {
 	/**
 	 * Prepare an item for API response.
 	 *
-	 * @param object $item The item object from database.
+	 * @param object          $item    The item object from database.
+	 * @param WP_REST_Request $request The request object.
 	 * @return array<string, mixed> Formatted item data.
 	 */
-	protected function prepare_item_for_response( object $item ): array {
+	public function prepare_item_for_response( $item, $request = null ): array {
 		return array(
 			'id'         => (int) $item->id,
 			'title'      => $item->title,

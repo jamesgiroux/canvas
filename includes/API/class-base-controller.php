@@ -322,7 +322,7 @@ abstract class Base_Controller extends WP_REST_Controller {
 	 *
 	 * @return array<string, array<string, mixed>> Query parameter schema.
 	 */
-	protected function get_collection_params(): array {
+	public function get_collection_params(): array {
 		return array(
 			'page'     => array(
 				'description'       => __( 'Current page of the collection.', 'canvas' ),
