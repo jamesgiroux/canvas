@@ -1,0 +1,36 @@
+/**
+ * Badge Styles
+ *
+ * Status and category badge component.
+ */
+
+.canvas-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 8px;
+	border: 1px solid;
+	border-radius: $radius-sm;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.4;
+	white-space: nowrap;
+
+	// Size variants.
+	&--small {
+		padding: 1px 6px;
+		font-size: 10px;
+	}
+
+	&--medium {
+		padding: 2px 8px;
+		font-size: 11px;
+	}
+
+	&--large {
+		padding: 4px 12px;
+		font-size: 12px;
+	}
+
+	// Note: Color variants are applied via inline styles
+	// from the design constants for flexibility.
+}

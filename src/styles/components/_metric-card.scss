@@ -1,0 +1,112 @@
+/**
+ * Metric Card Styles
+ *
+ * Dashboard metric display component.
+ */
+
+.canvas-metric-card {
+	&__body {
+		display: flex;
+		align-items: flex-start;
+		gap: $spacing-md;
+	}
+
+	&__icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 48px;
+		height: 48px;
+		background: $color-background;
+		border-radius: $radius-md;
+		color: $color-primary;
+	}
+
+	&__content {
+		flex: 1;
+	}
+
+	&__label {
+		display: block;
+		margin-bottom: $spacing-xs;
+		font-size: 12px;
+		color: $color-text-secondary;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	&__value {
+		display: block;
+		font-size: 24px;
+		font-weight: 600;
+		color: $color-text;
+		line-height: 1.2;
+	}
+
+	&__loading {
+		min-height: 32px;
+		display: flex;
+		align-items: center;
+	}
+
+	&__trend {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		margin-top: $spacing-xs;
+		font-size: 12px;
+		font-weight: 500;
+
+		&--up {
+			color: #00a32a;
+		}
+
+		&--down {
+			color: #d63638;
+		}
+
+		&--neutral {
+			color: $color-text-secondary;
+		}
+	}
+
+	// Variants.
+	&--success {
+		.canvas-metric-card__icon {
+			background: #edfaef;
+			color: #00a32a;
+		}
+	}
+
+	&--warning {
+		.canvas-metric-card__icon {
+			background: #fcf9e8;
+			color: #dba617;
+		}
+	}
+
+	&--error {
+		.canvas-metric-card__icon {
+			background: #fcf0f1;
+			color: #d63638;
+		}
+	}
+
+	&--info {
+		.canvas-metric-card__icon {
+			background: #f0f6fc;
+			color: #72aee6;
+		}
+	}
+}
+
+// Grid layout.
+.canvas-metric-grid {
+	@media (max-width: 782px) {
+		grid-template-columns: repeat(2, 1fr) !important;
+	}
+
+	@media (max-width: 480px) {
+		grid-template-columns: 1fr !important;
+	}
+}

@@ -1,0 +1,58 @@
+/**
+ * Error Boundary Styles
+ */
+
+.canvas-error-boundary {
+	padding: 40px;
+
+	.components-card {
+		max-width: 500px;
+		margin: 0 auto;
+	}
+}
+
+.canvas-error-boundary__content {
+	text-align: center;
+}
+
+.canvas-error-boundary__icon {
+	font-size: 48px;
+	width: 48px;
+	height: 48px;
+	color: #d63638;
+	margin-bottom: 16px;
+}
+
+.canvas-error-boundary__details {
+	margin: 16px 0;
+	padding: 12px;
+	background: #f0f0f1;
+	border-radius: 4px;
+	text-align: left;
+	font-size: 12px;
+
+	summary {
+		cursor: pointer;
+		font-weight: 600;
+		margin-bottom: 8px;
+	}
+
+	pre {
+		margin: 8px 0 0 0;
+		padding: 8px;
+		background: #fff;
+		border: 1px solid #dcdcde;
+		border-radius: 2px;
+		overflow-x: auto;
+		font-size: 11px;
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+}
+
+.canvas-error-boundary__actions {
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+	margin-top: 24px;
+}

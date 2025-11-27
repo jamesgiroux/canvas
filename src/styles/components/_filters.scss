@@ -1,0 +1,17 @@
+/**
+ * Filter Controls Styles
+ */
+
+.canvas-filters {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 24px;
+
+	.components-search-control {
+		max-width: 400px;
+	}
+
+	.components-select-control {
+		min-width: 150px;
+	}
+}

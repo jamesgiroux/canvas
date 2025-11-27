@@ -1,0 +1,90 @@
+/**
+ * Card Styles
+ */
+
+// Item cards grid
+.canvas-items-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: 24px;
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+// Individual item card
+.canvas-item-card {
+	transition: 0.3s ease;
+	box-shadow: 0px 0px 0px 1px rgba(67, 48, 141, 0.1),
+		0px 26px 7px 0px rgba(66, 59, 104, 0),
+		0px 17px 7px 0px rgba(66, 59, 104, 0),
+		0px 9px 6px 0px rgba(66, 59, 104, 0.02),
+		0px 4px 4px 0px rgba(66, 59, 104, 0.03),
+		0px 1px 2px 0px rgba(66, 59, 104, 0.03);
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: 0px 0px 0px 1px rgba(67, 48, 141, 0.15),
+			0px 32px 10px 0px rgba(66, 59, 104, 0),
+			0px 21px 9px 0px rgba(66, 59, 104, 0.01),
+			0px 12px 8px 0px rgba(66, 59, 104, 0.03),
+			0px 5px 5px 0px rgba(66, 59, 104, 0.04),
+			0px 1px 3px 0px rgba(66, 59, 104, 0.05);
+	}
+
+	&__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 8px;
+	}
+
+	&__title {
+		margin: 0;
+		font-size: 16px;
+		font-weight: 600;
+		color: #1e1e1e;
+	}
+
+	&__content {
+		margin: 0 0 16px;
+		color: #666;
+		font-size: 14px;
+		line-height: 1.5;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 8px;
+	}
+}
+
+// Settings cards
+.canvas-settings-sections {
+	display: grid;
+	gap: 24px;
+}
+
+.canvas-settings-card {
+	box-shadow: 0px 0px 0px 1px rgba(67, 48, 141, 0.1),
+		0px 1px 2px 0px rgba(66, 59, 104, 0.03);
+
+	.components-card__header {
+		h2 {
+			margin: 0;
+			font-size: 16px;
+			font-weight: 600;
+		}
+	}
+}
+
+// Modal actions
+.canvas-modal__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid #e0e0e0;
+}

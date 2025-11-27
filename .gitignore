@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+build/
+*.zip
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# PHP
+.phpunit.cache/
+coverage/
+*.phar
+
+# WordPress
+wp-content/
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test artifacts
+tests/coverage/
+junit.xml
