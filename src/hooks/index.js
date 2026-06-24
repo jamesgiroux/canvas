@@ -3,7 +3,7 @@
  *
  * Export all custom hooks for easy importing.
  *
- * @package Canvas
+ * @package
  */
 
 export { useItems, useItem } from './useItems';

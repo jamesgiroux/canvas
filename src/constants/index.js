@@ -3,7 +3,7 @@
  *
  * Central export for all application constants.
  *
- * @package Canvas
+ * @package
  */
 
 // API constants.

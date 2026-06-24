@@ -3,7 +3,7 @@
  *
  * WordPress data store for managing plugin settings.
  *
- * @package Canvas
+ * @package
  */
 
 import { createReduxStore, register } from '@wordpress/data';
@@ -211,8 +211,8 @@ const selectors = {
 	/**
 	 * Get single setting.
 	 *
-	 * @param {Object} state Store state.
-	 * @param {string} key   Setting key.
+	 * @param {Object} state        Store state.
+	 * @param {string} key          Setting key.
 	 * @param {*}      defaultValue Default value if not set.
 	 * @return {*} Setting value.
 	 */

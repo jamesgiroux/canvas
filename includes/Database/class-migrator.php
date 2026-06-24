@@ -8,6 +8,8 @@
  * @package Canvas
  */
 
+declare(strict_types=1);
+
 namespace Canvas\Database;
 
 // Exit if accessed directly.
@@ -121,7 +123,7 @@ class Migrator {
 	/**
 	 * Get all migration files sorted by number.
 	 *
-	 * @return array<string, string> Migration ID => file path.
+	 * @return array<int|string, string> Migration ID => file path.
 	 */
 	private function get_migration_files(): array {
 		if ( ! is_dir( $this->migrations_dir ) ) {
@@ -141,7 +143,7 @@ class Migrator {
 
 			// Extract migration ID from filename (e.g., "001" from "001-add-index.php").
 			if ( preg_match( '/^(\d{3})-/', $filename, $matches ) ) {
-				$migration_id               = $matches[1];
+				$migration_id                = $matches[1];
 				$migrations[ $migration_id ] = $file;
 			}
 		}

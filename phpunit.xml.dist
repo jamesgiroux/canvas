@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
 	bootstrap="tests/bootstrap.php"
 	colors="true"
 	beStrictAboutTestsThatDoNotTestAnything="true"
@@ -16,18 +16,14 @@
 		</testsuite>
 	</testsuites>
 
-	<coverage>
-		<report>
-			<html outputDirectory="coverage"/>
-			<text outputFile="php://stdout"/>
-		</report>
+	<source>
 		<include>
 			<directory suffix=".php">includes</directory>
 		</include>
 		<exclude>
 			<directory>includes/Database/migrations</directory>
 		</exclude>
-	</coverage>
+	</source>
 
 	<php>
 		<const name="WP_TESTS_DOMAIN" value="example.org"/>

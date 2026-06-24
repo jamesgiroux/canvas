@@ -2,11 +2,14 @@
 /**
  * Base Model Class
  *
- * Abstract base class for all data models. Provides common functionality
- * for database operations including multisite support.
+ * Abstract base for data models backed by a custom table. Provides CRUD,
+ * multisite isolation, JSON column handling, a shared WHERE builder, and
+ * object-cache-backed per-row caching.
  *
  * @package Canvas
  */
+
+declare(strict_types=1);
 
 namespace Canvas\Models;
 
@@ -16,57 +19,43 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Base Model class.
+ * Base Model.
  *
- * Extend this class to create data models with built-in:
- * - Table name management
- * - Multisite blog_id handling
- * - JSON encoding/decoding helpers
- * - Common query patterns
+ * Extend and override the static configuration properties. All queries are
+ * automatically scoped to the current blog via the `blog_id` column.
  */
 abstract class Base_Model {
 
 	/**
-	 * The table name without prefix.
-	 *
-	 * Override this in child classes.
+	 * Table name without the WordPress prefix.
 	 *
 	 * @var string
 	 */
 	protected static string $table = '';
 
 	/**
-	 * Primary key column name.
+	 * Primary key column.
 	 *
 	 * @var string
 	 */
 	protected static string $primary_key = 'id';
 
 	/**
-	 * Columns that contain JSON data.
+	 * Columns stored as JSON (encoded on write, decoded on read).
 	 *
-	 * Override in child classes to specify which columns should be
-	 * automatically encoded/decoded as JSON.
-	 *
-	 * @var array<string>
+	 * @var array<int, string>
 	 */
 	protected static array $json_columns = array();
 
 	/**
-	 * Allowed columns for queries.
+	 * Columns allowed in WHERE / ORDER BY clauses (SQL-injection allowlist).
 	 *
-	 * Override in child classes to whitelist columns that can be used
-	 * in WHERE clauses and ORDER BY. This prevents SQL injection.
-	 *
-	 * @var array<string>
+	 * @var array<int, string>
 	 */
 	protected static array $allowed_columns = array( 'id', 'blog_id', 'created_at', 'updated_at' );
 
 	/**
-	 * Enable caching for this model.
-	 *
-	 * Override in child classes to enable transient caching.
-	 * Set to false to disable caching for specific models.
+	 * Whether per-row caching is enabled.
 	 *
 	 * @var bool
 	 */
@@ -75,128 +64,14 @@ abstract class Base_Model {
 	/**
 	 * Cache TTL in seconds.
 	 *
-	 * Override in child classes to customize cache duration.
-	 * Default: 1 hour (3600 seconds).
-	 *
 	 * @var int
 	 */
 	protected static int $cache_ttl = HOUR_IN_SECONDS;
 
 	/**
-	 * Validate that a column name is allowed.
+	 * Full table name including the WordPress prefix.
 	 *
-	 * @param string $column The column name to validate.
-	 * @return bool True if column is allowed, false otherwise.
-	 */
-	protected static function is_valid_column( string $column ): bool {
-		return in_array( $column, static::$allowed_columns, true );
-	}
-
-	/**
-	 * Generate a cache key for a record.
-	 *
-	 * @param int $id The record ID.
-	 * @return string The cache key.
-	 */
-	protected static function get_cache_key( int $id ): string {
-		return sprintf(
-			'%s_%d_%d',
-			static::$table,
-			static::get_blog_id(),
-			$id
-		);
-	}
-
-	/**
-	 * Get a cached record.
-	 *
-	 * @param int $id The record ID.
-	 * @return object|null|false Cached object, null if not found, false if not cached.
-	 */
-	protected static function get_cached( int $id ): object|null|false {
-		if ( ! static::$cache_enabled ) {
-			return false;
-		}
-
-		$cache_key = static::get_cache_key( $id );
-		$cached    = get_transient( $cache_key );
-
-		// Return false if not in cache (transient returns false when not found).
-		if ( false === $cached ) {
-			return false;
-		}
-
-		// Return null if explicitly cached as not found.
-		if ( 'not_found' === $cached ) {
-			return null;
-		}
-
-		return $cached;
-	}
-
-	/**
-	 * Set a cached record.
-	 *
-	 * @param int         $id   The record ID.
-	 * @param object|null $data The data to cache, or null if not found.
-	 * @return void
-	 */
-	protected static function set_cached( int $id, ?object $data ): void {
-		if ( ! static::$cache_enabled ) {
-			return;
-		}
-
-		$cache_key = static::get_cache_key( $id );
-		$value     = null === $data ? 'not_found' : $data;
-
-		set_transient( $cache_key, $value, static::$cache_ttl );
-	}
-
-	/**
-	 * Clear cache for a record.
-	 *
-	 * @param int $id The record ID.
-	 * @return void
-	 */
-	protected static function clear_cache( int $id ): void {
-		if ( ! static::$cache_enabled ) {
-			return;
-		}
-
-		delete_transient( static::get_cache_key( $id ) );
-	}
-
-	/**
-	 * Clear all cache for this model on the current blog.
-	 *
-	 * Note: This uses a prefix-based approach which may not delete all
-	 * transients on all caching backends. For complete cache clearing,
-	 * consider using object cache groups instead.
-	 *
-	 * @return void
-	 */
-	public static function clear_all_cache(): void {
-		global $wpdb;
-
-		if ( ! static::$cache_enabled ) {
-			return;
-		}
-
-		$prefix = sprintf( '_transient_%s_%d_', static::$table, static::get_blog_id() );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-				$wpdb->esc_like( $prefix ) . '%'
-			)
-		);
-	}
-
-	/**
-	 * Get the full table name with WordPress prefix.
-	 *
-	 * @return string The prefixed table name.
+	 * @return string
 	 */
 	public static function get_table_name(): string {
 		global $wpdb;
@@ -204,100 +79,63 @@ abstract class Base_Model {
 	}
 
 	/**
-	 * Get the current blog ID.
+	 * Current blog ID (1 on single site). Used for multisite isolation.
 	 *
-	 * Used for multisite isolation - each site's data is segregated.
-	 *
-	 * @return int The current blog ID (1 for single-site).
+	 * @return int
 	 */
 	public static function get_blog_id(): int {
 		return get_current_blog_id();
 	}
 
 	/**
-	 * Encode data as JSON for storage.
-	 *
-	 * @param mixed $data The data to encode.
-	 * @return string JSON string, or empty string on failure.
-	 */
-	public static function encode_json( mixed $data ): string {
-		if ( empty( $data ) ) {
-			return '{}';
-		}
-
-		$encoded = wp_json_encode( $data );
-		return false !== $encoded ? $encoded : '{}';
-	}
-
-	/**
-	 * Decode JSON string from storage.
-	 *
-	 * @param string $json The JSON string to decode.
-	 * @param bool   $assoc Whether to return associative array (default true).
-	 * @return mixed Decoded data, or empty array on failure.
-	 */
-	public static function decode_json( string $json, bool $assoc = true ): mixed {
-		if ( empty( $json ) ) {
-			return $assoc ? array() : new \stdClass();
-		}
-
-		$decoded = json_decode( $json, $assoc );
-		return null !== $decoded ? $decoded : ( $assoc ? array() : new \stdClass() );
-	}
-
-	/**
 	 * Find a record by primary key.
 	 *
-	 * @param int  $id          The primary key value.
-	 * @param bool $skip_cache  Whether to bypass cache (default false).
-	 * @return object|null The record or null if not found.
+	 * @param int  $id         Primary key value.
+	 * @param bool $skip_cache Bypass the cache when true.
+	 * @return object|null
 	 */
 	public static function find( int $id, bool $skip_cache = false ): ?object {
 		global $wpdb;
 
-		// Check cache first.
-		if ( ! $skip_cache ) {
-			$cached = static::get_cached( $id );
-			if ( false !== $cached ) {
-				return $cached;
+		if ( ! $skip_cache && static::$cache_enabled ) {
+			$found  = false;
+			$cached = wp_cache_get( static::cache_key( $id ), static::cache_group(), false, $found );
+			if ( $found ) {
+				return false === $cached ? null : $cached;
 			}
 		}
 
 		$table = static::get_table_name();
 		$pk    = static::$primary_key;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM {$table} WHERE {$pk} = %d AND blog_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT * FROM {$table} WHERE {$pk} = %d AND blog_id = %d",
 				$id,
 				static::get_blog_id()
 			)
 		);
 
-		if ( ! $row ) {
-			// Cache the not-found result to prevent repeated queries.
-			static::set_cached( $id, null );
-			return null;
+		$result = $row ? static::hydrate( $row ) : null;
+
+		if ( static::$cache_enabled ) {
+			wp_cache_set( static::cache_key( $id ), $result ?? false, static::cache_group(), static::$cache_ttl );
 		}
 
-		$hydrated = static::hydrate( $row );
-
-		// Cache the result.
-		static::set_cached( $id, $hydrated );
-
-		return $hydrated;
+		return $result;
 	}
 
 	/**
-	 * Find all records matching criteria.
+	 * Find records matching the given conditions.
 	 *
-	 * @param array<string, mixed> $where Column => value pairs for WHERE clause.
-	 * @param string               $order_by Column to order by.
-	 * @param string               $order ASC or DESC.
-	 * @param int                  $limit Maximum records to return.
-	 * @param int                  $offset Records to skip.
-	 * @return array<object> Array of records.
+	 * @param array<string, mixed> $where    Column => value conditions.
+	 * @param string               $order_by Column to sort by.
+	 * @param string               $order    ASC or DESC.
+	 * @param int                  $limit    Maximum rows.
+	 * @param int                  $offset   Rows to skip.
+	 * @return array<int, object>
 	 */
 	public static function find_all(
 		array $where = array(),
@@ -308,90 +146,95 @@ abstract class Base_Model {
 	): array {
 		global $wpdb;
 
-		$table = static::get_table_name();
+		$table               = static::get_table_name();
+		[ $clause, $values ] = static::build_where( $where );
 
-		// Build WHERE clause.
-		$conditions = array( 'blog_id = %d' );
-		$values     = array( static::get_blog_id() );
-
-		foreach ( $where as $column => $value ) {
-			// Validate column name against whitelist to prevent SQL injection.
-			if ( ! static::is_valid_column( $column ) ) {
-				continue; // Skip invalid columns.
-			}
-
-			if ( is_null( $value ) ) {
-				$conditions[] = "{$column} IS NULL";
-			} elseif ( is_int( $value ) ) {
-				$conditions[] = "{$column} = %d";
-				$values[]     = $value;
-			} else {
-				$conditions[] = "{$column} = %s";
-				$values[]     = $value;
-			}
-		}
-
-		$where_clause = implode( ' AND ', $conditions );
-
-		// Validate and sanitize order parameters.
 		if ( ! static::is_valid_column( $order_by ) ) {
-			$order_by = static::$primary_key; // Default to primary key if invalid.
+			$order_by = static::$primary_key;
 		}
-		$order = strtoupper( $order ) === 'ASC' ? 'ASC' : 'DESC';
+		$order = 'ASC' === strtoupper( $order ) ? 'ASC' : 'DESC';
 
-		// Build query.
-		$sql = "SELECT * FROM {$table} WHERE {$where_clause} ORDER BY {$order_by} {$order} LIMIT %d OFFSET %d";
 		$values[] = $limit;
 		$values[] = $offset;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $values ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT * FROM {$table} WHERE {$clause} ORDER BY {$order_by} {$order} LIMIT %d OFFSET %d",
+				$values
+			)
+		);
 
-		if ( ! $rows ) {
-			return array();
-		}
-
-		return array_map( array( static::class, 'hydrate' ), $rows );
+		return $rows ? array_map( array( static::class, 'hydrate' ), $rows ) : array();
 	}
 
 	/**
-	 * Count records matching criteria.
+	 * Find records where a column matches a LIKE term.
 	 *
-	 * @param array<string, mixed> $where Column => value pairs for WHERE clause.
-	 * @return int The count.
+	 * @param string $column   Column to match (must be allowlisted).
+	 * @param string $term     Search term (wrapped in %…%).
+	 * @param string $order_by Column to sort by.
+	 * @param string $order    ASC or DESC.
+	 * @param int    $limit    Maximum rows.
+	 * @param int    $offset   Rows to skip.
+	 * @return array<int, object>
+	 */
+	public static function find_like(
+		string $column,
+		string $term,
+		string $order_by = 'id',
+		string $order = 'DESC',
+		int $limit = 100,
+		int $offset = 0
+	): array {
+		global $wpdb;
+
+		if ( ! static::is_valid_column( $column ) ) {
+			return array();
+		}
+
+		$table = static::get_table_name();
+
+		if ( ! static::is_valid_column( $order_by ) ) {
+			$order_by = static::$primary_key;
+		}
+		$order = 'ASC' === strtoupper( $order ) ? 'ASC' : 'DESC';
+
+		$like = '%' . $wpdb->esc_like( $term ) . '%';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT * FROM {$table} WHERE blog_id = %d AND {$column} LIKE %s ORDER BY {$order_by} {$order} LIMIT %d OFFSET %d",
+				static::get_blog_id(),
+				$like,
+				$limit,
+				$offset
+			)
+		);
+
+		return $rows ? array_map( array( static::class, 'hydrate' ), $rows ) : array();
+	}
+
+	/**
+	 * Count records matching the given conditions.
+	 *
+	 * @param array<string, mixed> $where Column => value conditions.
+	 * @return int
 	 */
 	public static function count( array $where = array() ): int {
 		global $wpdb;
 
-		$table = static::get_table_name();
+		$table               = static::get_table_name();
+		[ $clause, $values ] = static::build_where( $where );
 
-		// Build WHERE clause.
-		$conditions = array( 'blog_id = %d' );
-		$values     = array( static::get_blog_id() );
-
-		foreach ( $where as $column => $value ) {
-			// Validate column name against whitelist to prevent SQL injection.
-			if ( ! static::is_valid_column( $column ) ) {
-				continue; // Skip invalid columns.
-			}
-
-			if ( is_null( $value ) ) {
-				$conditions[] = "{$column} IS NULL";
-			} elseif ( is_int( $value ) ) {
-				$conditions[] = "{$column} = %d";
-				$values[]     = $value;
-			} else {
-				$conditions[] = "{$column} = %s";
-				$values[]     = $value;
-			}
-		}
-
-		$where_clause = implode( ' AND ', $conditions );
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$table} WHERE {$where_clause}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT COUNT(*) FROM {$table} WHERE {$clause}",
 				$values
 			)
 		);
@@ -400,52 +243,34 @@ abstract class Base_Model {
 	/**
 	 * Insert a new record.
 	 *
-	 * @param array<string, mixed> $data Column => value pairs to insert.
-	 * @return int|false The inserted ID or false on failure.
+	 * @param array<string, mixed> $data Column => value pairs.
+	 * @return int|false Inserted ID, or false on failure.
 	 */
 	public static function insert( array $data ): int|false {
 		global $wpdb;
 
-		// Add blog_id if not present.
-		if ( ! isset( $data['blog_id'] ) ) {
-			$data['blog_id'] = static::get_blog_id();
-		}
+		$data['blog_id'] ??= static::get_blog_id();
+		$data              = static::encode_json_columns( $data );
 
-		// Encode JSON columns.
-		foreach ( static::$json_columns as $column ) {
-			if ( isset( $data[ $column ] ) && ! is_string( $data[ $column ] ) ) {
-				$data[ $column ] = static::encode_json( $data[ $column ] );
-			}
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->insert( static::get_table_name(), $data );
 
-		if ( false === $result ) {
-			return false;
-		}
-
-		return $wpdb->insert_id;
+		return false === $result ? false : (int) $wpdb->insert_id;
 	}
 
 	/**
 	 * Update an existing record.
 	 *
-	 * @param int                  $id The primary key value.
-	 * @param array<string, mixed> $data Column => value pairs to update.
-	 * @return bool True on success, false on failure.
+	 * @param int                  $id   Primary key value.
+	 * @param array<string, mixed> $data Column => value pairs.
+	 * @return bool
 	 */
 	public static function update( int $id, array $data ): bool {
 		global $wpdb;
 
-		// Encode JSON columns.
-		foreach ( static::$json_columns as $column ) {
-			if ( isset( $data[ $column ] ) && ! is_string( $data[ $column ] ) ) {
-				$data[ $column ] = static::encode_json( $data[ $column ] );
-			}
-		}
+		$data = static::encode_json_columns( $data );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->update(
 			static::get_table_name(),
 			$data,
@@ -456,7 +281,6 @@ abstract class Base_Model {
 		);
 
 		if ( false !== $result ) {
-			// Clear cache on successful update.
 			static::clear_cache( $id );
 		}
 
@@ -466,13 +290,13 @@ abstract class Base_Model {
 	/**
 	 * Delete a record.
 	 *
-	 * @param int $id The primary key value.
-	 * @return bool True on success, false on failure.
+	 * @param int $id Primary key value.
+	 * @return bool
 	 */
 	public static function delete( int $id ): bool {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->delete(
 			static::get_table_name(),
 			array(
@@ -482,7 +306,6 @@ abstract class Base_Model {
 		);
 
 		if ( false !== $result ) {
-			// Clear cache on successful delete.
 			static::clear_cache( $id );
 		}
 
@@ -490,57 +313,175 @@ abstract class Base_Model {
 	}
 
 	/**
-	 * Hydrate a database row into a model object.
+	 * Encode/decode helpers for JSON columns.
 	 *
-	 * Override this method in child classes to add custom hydration logic.
-	 * By default, decodes JSON columns.
+	 * @param mixed $data Data to encode.
+	 * @return string
+	 */
+	public static function encode_json( mixed $data ): string {
+		if ( empty( $data ) ) {
+			return '{}';
+		}
+		$encoded = wp_json_encode( $data );
+		return false !== $encoded ? $encoded : '{}';
+	}
+
+	/**
+	 * Decode a JSON string from storage.
 	 *
-	 * @param object $row The database row.
-	 * @return object The hydrated object.
+	 * @param string $json  JSON string.
+	 * @param bool   $assoc Return associative array when true.
+	 * @return mixed
+	 */
+	public static function decode_json( string $json, bool $assoc = true ): mixed {
+		if ( '' === $json ) {
+			return $assoc ? array() : new \stdClass();
+		}
+		$decoded = json_decode( $json, $assoc );
+		return null !== $decoded ? $decoded : ( $assoc ? array() : new \stdClass() );
+	}
+
+	/**
+	 * Clear the cached copy of a single record.
+	 *
+	 * @param int $id Primary key value.
+	 * @return void
+	 */
+	public static function clear_cache( int $id ): void {
+		if ( static::$cache_enabled ) {
+			wp_cache_delete( static::cache_key( $id ), static::cache_group() );
+		}
+	}
+
+	/**
+	 * Invalidate every cached record for this model on the current blog.
+	 *
+	 * Bumps the group's last_changed marker, orphaning all existing keys without
+	 * touching other cache groups — safe on external object caches.
+	 *
+	 * @return void
+	 */
+	public static function clear_all_cache(): void {
+		if ( static::$cache_enabled ) {
+			wp_cache_set( 'last_changed', microtime(), static::cache_group() );
+		}
+	}
+
+	/**
+	 * Run a callback inside a database transaction.
+	 *
+	 * Commits on success, rolls back if the callback throws, then re-throws.
+	 *
+	 * @template T
+	 * @param callable():T $callback Work to perform atomically.
+	 * @return T
+	 *
+	 * @throws \Throwable Whatever the callback throws (after rollback).
+	 */
+	public static function transaction( callable $callback ): mixed {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->query( 'START TRANSACTION' );
+
+		try {
+			$result = $callback();
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'COMMIT' );
+			return $result;
+		} catch ( \Throwable $e ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->query( 'ROLLBACK' );
+			throw $e;
+		}
+	}
+
+	/**
+	 * Hydrate a raw database row into a model object (decodes JSON columns).
+	 *
+	 * @param object $row Database row.
+	 * @return object
 	 */
 	protected static function hydrate( object $row ): object {
-		// Decode JSON columns.
 		foreach ( static::$json_columns as $column ) {
 			if ( isset( $row->$column ) && is_string( $row->$column ) ) {
 				$row->$column = static::decode_json( $row->$column );
 			}
 		}
-
 		return $row;
 	}
 
 	/**
-	 * Begin a database transaction.
+	 * Build a blog-scoped WHERE clause from an allowlisted condition map.
 	 *
-	 * Use with commit() or rollback() for atomic operations.
-	 *
-	 * @return void
+	 * @param array<string, mixed> $where Column => value conditions.
+	 * @return array{0: string, 1: array<int, mixed>} [ clause, prepared values ]
 	 */
-	public static function begin_transaction(): void {
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->query( 'START TRANSACTION' );
+	protected static function build_where( array $where ): array {
+		$conditions = array( 'blog_id = %d' );
+		$values     = array( static::get_blog_id() );
+
+		foreach ( $where as $column => $value ) {
+			if ( ! static::is_valid_column( $column ) ) {
+				continue;
+			}
+
+			if ( null === $value ) {
+				$conditions[] = "{$column} IS NULL";
+			} elseif ( is_int( $value ) ) {
+				$conditions[] = "{$column} = %d";
+				$values[]     = $value;
+			} else {
+				$conditions[] = "{$column} = %s";
+				$values[]     = $value;
+			}
+		}
+
+		return array( implode( ' AND ', $conditions ), $values );
 	}
 
 	/**
-	 * Commit a database transaction.
+	 * Whether a column is allowed in dynamic query fragments.
 	 *
-	 * @return void
+	 * @param string $column Column name.
+	 * @return bool
 	 */
-	public static function commit(): void {
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->query( 'COMMIT' );
+	protected static function is_valid_column( string $column ): bool {
+		return in_array( $column, static::$allowed_columns, true );
 	}
 
 	/**
-	 * Rollback a database transaction.
+	 * Encode all configured JSON columns present in the data array.
 	 *
-	 * @return void
+	 * @param array<string, mixed> $data Data to write.
+	 * @return array<string, mixed>
 	 */
-	public static function rollback(): void {
-		global $wpdb;
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-		$wpdb->query( 'ROLLBACK' );
+	protected static function encode_json_columns( array $data ): array {
+		foreach ( static::$json_columns as $column ) {
+			if ( isset( $data[ $column ] ) && ! is_string( $data[ $column ] ) ) {
+				$data[ $column ] = static::encode_json( $data[ $column ] );
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * Object-cache group for this model.
+	 *
+	 * @return string
+	 */
+	protected static function cache_group(): string {
+		return 'canvas:' . static::$table;
+	}
+
+	/**
+	 * Cache key for a record, namespaced by the group's last_changed marker so a
+	 * single clear_all_cache() invalidates every key at once.
+	 *
+	 * @param int $id Primary key value.
+	 * @return string
+	 */
+	protected static function cache_key( int $id ): string {
+		return $id . ':' . wp_cache_get_last_changed( static::cache_group() );
 	}
 }

@@ -10,19 +10,21 @@
 		}
 	],
 	"require": {
-		"php": ">=8.0"
+		"php": ">=8.3"
 	},
 	"require-dev": {
 		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-		"phpunit/phpunit": "^10.0",
-		"wp-coding-standards/wpcs": "^3.0",
 		"phpcompatibility/phpcompatibility-wp": "^2.1",
-		"yoast/phpunit-polyfills": "^2.0"
+		"phpstan/phpstan": "^2.0",
+		"phpunit/phpunit": "^12.0",
+		"szepeviktor/phpstan-wordpress": "^2.0",
+		"wp-coding-standards/wpcs": "^3.3",
+		"yoast/phpunit-polyfills": "^4.0"
 	},
 	"autoload": {
-		"psr-4": {
-			"Canvas\\": "includes/"
-		}
+		"classmap": [
+			"includes/"
+		]
 	},
 	"autoload-dev": {
 		"psr-4": {
@@ -32,12 +34,21 @@
 	"scripts": {
 		"phpcs": "phpcs",
 		"phpcbf": "phpcbf",
+		"phpstan": "phpstan analyse --memory-limit=1G",
 		"test": "phpunit",
-		"test:coverage": "phpunit --coverage-html coverage"
+		"test:unit": "phpunit --testsuite unit",
+		"test:coverage": "phpunit --coverage-html coverage",
+		"lint": [
+			"@phpcs",
+			"@phpstan"
+		]
 	},
 	"config": {
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"platform": {
+			"php": "8.3.0"
 		},
 		"sort-packages": true
 	}

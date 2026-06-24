@@ -4,7 +4,7 @@
  * Custom hook for accessing items store with simplified API.
  * Wraps @wordpress/data store for cleaner component usage.
  *
- * @package Canvas
+ * @package
  */
 
 import { useCallback } from '@wordpress/element';
@@ -102,24 +102,27 @@ export function useItems() {
  * @return {Object} Item state and actions.
  */
 export function useItem( id ) {
-	const { items, currentItem, loading, error } = useSelect(
-		( select ) => {
-			const store = select( ITEMS_STORE );
-			return {
-				items: store.getItems(),
-				currentItem: store.getCurrentItem(),
-				loading: store.isLoading(),
-				error: store.getError(),
-			};
-		},
-		[]
-	);
+	const { items, currentItem, loading, error } = useSelect( ( select ) => {
+		const store = select( ITEMS_STORE );
+		return {
+			items: store.getItems(),
+			currentItem: store.getCurrentItem(),
+			loading: store.isLoading(),
+			error: store.getError(),
+		};
+	}, [] );
 
-	const { fetchItem: dispatchFetchItem, saveItem, deleteItem } =
-		useDispatch( ITEMS_STORE );
+	const {
+		fetchItem: dispatchFetchItem,
+		saveItem,
+		deleteItem,
+	} = useDispatch( ITEMS_STORE );
 
 	// Get item from current or find in list.
-	const item = currentItem?.id === id ? currentItem : items.find( ( i ) => i.id === id );
+	const item =
+		currentItem?.id === id
+			? currentItem
+			: items.find( ( i ) => i.id === id );
 
 	const fetch = useCallback(
 		() => dispatchFetchItem( id ),
@@ -131,10 +134,7 @@ export function useItem( id ) {
 		[ saveItem, id ]
 	);
 
-	const remove = useCallback(
-		() => deleteItem( id ),
-		[ deleteItem, id ]
-	);
+	const remove = useCallback( () => deleteItem( id ), [ deleteItem, id ] );
 
 	return {
 		item,

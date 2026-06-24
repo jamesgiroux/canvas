@@ -3,7 +3,7 @@
  *
  * Export all layout components for easy importing.
  *
- * @package Canvas
+ * @package
  */
 
 export { default as AppShell } from './AppShell';

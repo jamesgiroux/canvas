@@ -190,27 +190,6 @@ export default function Settings() {
 								'canvas'
 							) }
 						/>
-
-						<SelectControl
-							label={ __( 'Log Retention', 'canvas' ) }
-							value={ formData.log_retention || '30' }
-							onChange={ ( value ) =>
-								updateField( 'log_retention', value )
-							}
-							options={ [
-								{ value: '7', label: __( '7 days', 'canvas' ) },
-								{ value: '30', label: __( '30 days', 'canvas' ) },
-								{ value: '90', label: __( '90 days', 'canvas' ) },
-								{
-									value: '365',
-									label: __( '1 year', 'canvas' ),
-								},
-							] }
-							help={ __(
-								'How long to keep audit logs.',
-								'canvas'
-							) }
-						/>
 					</CardBody>
 				</Card>
 			</div>

@@ -7,7 +7,7 @@
  *
  * @package     Canvas
  * @author      Your Name
- * @copyright   2025 Your Company
+ * @copyright   2026 Your Company
  * @license     GPL-2.0-or-later
  *
  * @wordpress-plugin
@@ -21,9 +21,11 @@
  * Domain Path: /languages
  * License:     GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Requires at least: 6.4
- * Requires PHP: 8.0
+ * Requires at least: 7.0
+ * Requires PHP: 8.3
  */
+
+declare(strict_types=1);
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -31,138 +33,98 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Plugin version.
- * Update this when releasing new versions.
+ * Plugin version. Update this when releasing new versions.
  */
 define( 'CANVAS_VERSION', '1.0.0' );
 
 /**
- * Database schema version.
- * Increment when database schema changes require migrations.
+ * Database schema version. Increment when schema changes require migrations.
  */
 define( 'CANVAS_DB_VERSION', '1.0.0' );
 
 /**
- * Plugin file path.
- * Use for activation/deactivation hooks and file references.
+ * Plugin file path. Use for activation/deactivation hooks and file references.
  */
 define( 'CANVAS_FILE', __FILE__ );
 
 /**
- * Plugin directory path.
- * Use for including PHP files.
+ * Plugin directory path. Use for including PHP files.
  */
 define( 'CANVAS_PATH', plugin_dir_path( __FILE__ ) );
 
 /**
- * Plugin URL.
- * Use for enqueuing assets.
+ * Plugin URL. Use for enqueuing assets.
  */
 define( 'CANVAS_URL', plugin_dir_url( __FILE__ ) );
 
 /**
  * Minimum PHP version required.
  */
-define( 'CANVAS_MIN_PHP', '8.0' );
+define( 'CANVAS_MIN_PHP', '8.3' );
 
 /**
  * Minimum WordPress version required.
  */
-define( 'CANVAS_MIN_WP', '6.4' );
+define( 'CANVAS_MIN_WP', '7.0' );
 
 /**
- * Load Composer autoloader if available.
+ * Load the Composer autoloader if dependencies are installed.
  *
- * Composer handles PSR-4 autoloading for dependencies like Action Scheduler.
- * If composer autoload isn't available, we fall back to manual loading.
+ * When present, Composer's PSR-4 map handles the Canvas\ namespace (and any
+ * third-party dependencies). The hand-rolled autoloader below is a fallback
+ * for environments where `composer install` has not been run.
  */
-$composer_autoload = CANVAS_PATH . 'vendor/autoload.php';
-if ( file_exists( $composer_autoload ) ) {
-	require_once $composer_autoload;
+$canvas_composer_autoload = CANVAS_PATH . 'vendor/autoload.php';
+if ( is_readable( $canvas_composer_autoload ) ) {
+	require_once $canvas_composer_autoload;
 }
 
 /**
- * PSR-4 Autoloader for Canvas namespace.
+ * Fallback PSR-4 autoloader for the Canvas namespace.
  *
- * Maps Canvas\ClassName to includes/class-classname.php
- * Maps Canvas\Namespace\ClassName to includes/Namespace/class-classname.php
- *
- * Follows WordPress file naming conventions (lowercase with hyphens).
+ * Maps Canvas\Sub\Thing_Name to includes/Sub/<prefix>-thing-name.php, following
+ * WordPress file-naming conventions. Because the symbol kind (class, interface,
+ * trait, enum) cannot be derived from the name alone, each known prefix is tried
+ * in turn and the first matching file wins.
  */
 spl_autoload_register(
-	function ( $class ) {
-		// Only handle classes in our namespace.
+	static function ( string $classname ): void {
 		$prefix   = 'Canvas\\';
 		$base_dir = CANVAS_PATH . 'includes/';
 
-		// Check if the class uses our namespace prefix.
-		$len = strlen( $prefix );
-		if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		if ( ! str_starts_with( $classname, $prefix ) ) {
 			return;
 		}
 
-		// Get the relative class name.
-		$relative_class = substr( $class, $len );
-
-		// Convert namespace separators to directory separators.
-		$parts      = explode( '\\', $relative_class );
+		$relative   = substr( $classname, strlen( $prefix ) );
+		$parts      = explode( '\\', $relative );
 		$class_name = array_pop( $parts );
+		$slug       = strtolower( str_replace( '_', '-', $class_name ) );
+		$sub_dir    = $parts ? implode( '/', $parts ) . '/' : '';
 
-		// Convert class name to WordPress file naming convention.
-		// ClassName becomes class-classname.php
-		// Class_Name becomes class-class-name.php
-		$class_file = 'class-' . strtolower( str_replace( '_', '-', $class_name ) ) . '.php';
-
-		// Build the file path.
-		if ( ! empty( $parts ) ) {
-			$file = $base_dir . implode( '/', $parts ) . '/' . $class_file;
-		} else {
-			$file = $base_dir . $class_file;
-		}
-
-		// Include the file if it exists.
-		if ( file_exists( $file ) ) {
-			require_once $file;
+		foreach ( array( 'class', 'interface', 'trait', 'enum' ) as $kind ) {
+			$file = $base_dir . $sub_dir . $kind . '-' . $slug . '.php';
+			if ( is_readable( $file ) ) {
+				require_once $file;
+				return;
+			}
 		}
 	}
 );
 
 /**
- * Initialize the plugin.
- *
- * We use plugins_loaded to ensure WordPress and other plugins are ready.
- * Priority 10 is standard - adjust if you need to load before/after other plugins.
+ * Boot the plugin once WordPress and other plugins are ready.
  */
 add_action(
 	'plugins_loaded',
-	function () {
-		// Load text domain for translations.
+	static function (): void {
 		load_plugin_textdomain( 'canvas', false, dirname( plugin_basename( CANVAS_FILE ) ) . '/languages' );
-
-		// Initialize the main plugin instance.
-		Canvas\Plugin::get_instance();
+		Canvas\Plugin::get_instance()->register();
 	}
 );
 
 /**
- * Activation hook.
- *
- * Runs when the plugin is activated. Handles:
- * - Requirements checking (PHP version, WordPress version)
- * - Database table creation
- * - Default options setup
- * - Capability assignment
+ * Activation/deactivation lifecycle. Registered at top level, as WordPress requires.
  */
 register_activation_hook( CANVAS_FILE, array( 'Canvas\\Installer', 'activate' ) );
-
-/**
- * Deactivation hook.
- *
- * Runs when the plugin is deactivated. Handles:
- * - Cleanup of scheduled events
- * - Optional: Remove capabilities (uncomment in Installer if needed)
- *
- * Note: Does NOT remove database tables or options.
- * Those are handled by uninstall.php for complete removal.
- */
 register_deactivation_hook( CANVAS_FILE, array( 'Canvas\\Installer', 'deactivate' ) );

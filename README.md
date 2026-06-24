@@ -1,627 +1,304 @@
 # Canvas
 
-A WordPress plugin starter framework with React admin interface, REST API patterns, and modern PHP architecture.
+A WordPress plugin starter framework with a React admin interface, REST API patterns, and a modern, single-responsibility PHP architecture. Targets **WordPress 7.0** and **PHP 8.3**.
+
+Canvas is a *scaffold*, not an end-user plugin. Copy it, run the initialization script to rebrand it to your own plugin, and build from there.
 
 ## Features
 
-- **Full-Page React Admin**: Dark sidebar navigation with white content area, hiding WordPress admin UI
-- **Modern PHP**: PHP 8.0+ with strict typing, PSR-4 autoloading
-- **REST API**: Base controller with authentication, pagination, and sanitization
-- **Data Layer**: Abstract models with CRUD operations, JSON column support, SQL injection protection, and transient caching
-- **Database Migrations**: Version-controlled schema migrations
-- **State Management**: WordPress data stores with custom hooks
-- **Design System**: Consistent styling with SCSS and design tokens
-- **Error Handling**: React Error Boundary for graceful error recovery
-- **Accessibility**: WCAG 2.1 AA compliant with proper ARIA labels and keyboard navigation
-- **Multisite Support**: Blog ID isolation for all data
-- **Testing Ready**: PHPUnit and WordPress coding standards configured
+- **Full-page React admin** — dark sidebar, white content area, hiding the standard admin UI.
+- **Single-responsibility PHP** — a thin `Plugin` loader wires focused components (`Admin\Menu`, `Admin\Assets`, `API\Router`, `Database\Migration_Runner`) that each register their own hooks via a `Registrable` contract.
+- **REST API** — base controller with capability checks, pagination, and sanitization helpers.
+- **Data layer** — abstract models with CRUD, multisite isolation, JSON columns, an SQL-injection allowlist, a shared WHERE builder, LIKE search, and **object-cache-backed** caching (Redis/Memcached safe).
+- **Single source of truth for settings** — option name, defaults, REST schema, and sanitization all live in one `Settings` class.
+- **Modern PHP 8.3** — `declare(strict_types=1)` everywhere, backed enums, `match`, transactions via a callback.
+- **Tooling & guardrails** — PHPCS (WordPress standards), PHPStan (level 5 + WP stubs), PHPUnit, `wp-env`, GitHub Actions CI, and Dependabot.
+- **One-command initialization** — `bin/canvas-init.py` renames the scaffold to your plugin.
 
 ## Requirements
 
-- PHP 8.0+
-- WordPress 6.4+
-- Node.js 18+
+- PHP 8.3+
+- WordPress 7.0+
+- Node.js 20+
 - Composer 2.0+
 
-## Installation
+## Quick start
 
-1. Clone or copy to your plugins directory:
+1. Copy Canvas into your plugins directory:
    ```bash
    cd wp-content/plugins
-   git clone https://github.com/your-repo/canvas.git
+   git clone https://github.com/your-repo/canvas.git my-plugin
+   cd my-plugin
    ```
 
-2. Install PHP dependencies:
+2. **Initialize it as your own plugin** (rewrites all identifiers, renames the main file, then self-deletes):
    ```bash
-   cd canvas
+   python3 bin/canvas-init.py
+   # or non-interactively:
+   python3 bin/canvas-init.py --name="My Plugin" --author="Jane Doe" --yes
+   ```
+
+3. Install dependencies and build:
+   ```bash
    composer install
+   npm install && npm run build
    ```
 
-3. Install JavaScript dependencies and build:
-   ```bash
-   npm install
-   npm run build
-   ```
+4. Activate the plugin in the WordPress admin.
 
-4. Activate the plugin in WordPress admin.
+To develop against a throwaway WordPress install, run `npm run env:start` (requires Docker) — it boots WordPress 7.0 on PHP 8.3 with the plugin mounted.
 
-## Development
+## The initialization script
 
-### Start development server (with hot reload):
+`bin/canvas-init.py` is a standalone Python CLI tool (Python 3.8+) — it needs neither WordPress, Composer, nor npm, so it can run before anything is installed. It prompts for (or accepts as flags) the plugin name and derives sensible defaults for every other identifier:
+
+| Input | Default (from "My Plugin") | Replaces |
+|-------|----------------------------|----------|
+| Display name | `My Plugin` | `Plugin Name:`, menu labels, docs |
+| Slug / text domain | `my-plugin` | text domain, admin slug, asset handles, REST namespace, store names |
+| Namespace | `My_Plugin` | `Canvas\` PHP namespace |
+| Prefix | `my_plugin` / `MY_PLUGIN` | functions, options, tables, hooks, constants, capabilities |
+| JS global | `myPlugin` | `canvasData` |
+
+Flags: `--name`, `--slug`, `--namespace`, `--prefix`, `--js`, `--author`, `--email`, `--uri`, `--author-uri`, `--desc`, and `--yes` (skip prompts/confirmation). After rewriting every file and renaming `canvas.php` → `<slug>.php`, the script deletes itself.
+
+## Development commands
+
 ```bash
-npm start
+# JavaScript / React (build output → build/)
+npm start            # dev build with watch
+npm run build        # production build
+npm run lint         # ESLint + Stylelint (CI runs this)
+npm run format       # Prettier
+npm run env:start    # local WordPress via wp-env
+npm run env:stop
+
+# PHP
+composer phpcs       # WordPress Coding Standards
+composer phpcbf      # auto-fix coding standards
+composer phpstan     # static analysis (level 5, WP stubs)
+composer lint        # phpcs + phpstan
+composer test        # full PHPUnit suite
+composer test:unit   # unit suite only (no WordPress required)
 ```
 
-### Build for production:
+Run a single test:
+
 ```bash
-npm run build
+vendor/bin/phpunit --filter test_method_name
 ```
 
-### Run PHP linting:
-```bash
-composer phpcs
-```
+## Architecture
 
-### Run tests:
-```bash
-composer test
-```
+### Bootstrap and autoloading
 
-## What's Included
+`canvas.php` defines the `CANVAS_*` constants and registers two autoloaders:
 
-### PHP Components
+1. **Composer classmap** over `includes/` — used in production and by the test/tooling layer. (A PSR-4 map cannot be used because files follow WordPress naming conventions, e.g. `class-base-model.php`.) Run `composer dump-autoload` after adding a class.
+2. A **fallback** `spl_autoload_register` that resolves `Canvas\Sub\Thing_Name` to `includes/Sub/{class,interface,trait,enum}-thing-name.php`, trying each symbol-kind prefix. This finds newly added files immediately during development.
 
-| Component | Location | Description |
-|-----------|----------|-------------|
-| Plugin | `includes/class-plugin.php` | Main plugin class with singleton pattern, hook registration |
-| Installer | `includes/class-installer.php` | Activation/deactivation, database setup, capabilities |
-| Base_Model | `includes/Models/class-base-model.php` | Abstract ORM with CRUD, JSON columns, column validation |
-| Item | `includes/Models/class-item.php` | Example model implementation |
-| Base_Controller | `includes/API/class-base-controller.php` | REST API base with auth, pagination, sanitization |
-| Items_Controller | `includes/API/class-items-controller.php` | Example CRUD endpoints |
-| Settings_Controller | `includes/API/class-settings-controller.php` | Plugin settings endpoints |
-| Migrator | `includes/Database/class-migrator.php` | Database migration system |
+On `plugins_loaded`, the bootstrap calls `Plugin::get_instance()->register()`.
 
-### React Components
+### The component model
 
-| Component | Location | Description |
-|-----------|----------|-------------|
-| AppShell | `src/components/layout/AppShell.jsx` | Main app layout with routing |
-| Sidebar | `src/components/layout/Sidebar.jsx` | Dark sidebar navigation |
-| ErrorBoundary | `src/components/layout/ErrorBoundary.jsx` | Error catching and recovery |
-| Badge | `src/components/primitives/Badge.jsx` | Status badges with variants |
-| MetricCard | `src/components/primitives/MetricCard.jsx` | Dashboard metric display |
+`Plugin` is a thin loader. It builds a list of components and calls `register()` on each. Every component implements `Canvas\Contracts\Registrable` and owns exactly one concern:
 
-### Pages
+| Component | Responsibility |
+|-----------|----------------|
+| `Admin\Menu` | Registers admin menu/submenu pages; renders the React root. Owns the capability constants. |
+| `Admin\Assets` | Enqueues the SPA (plugin screens only); localizes `canvasData`. |
+| `API\Router` | Instantiates REST controllers on `rest_api_init`. |
+| `Database\Migration_Runner` | Runs migrations on `admin_init` when the DB version is behind. |
 
-| Page | Location | Description |
-|------|----------|-------------|
-| Dashboard | `src/pages/Dashboard.jsx` | Overview with metrics |
-| Items | `src/pages/Items.jsx` | CRUD interface for items |
-| Settings | `src/pages/Settings.jsx` | Plugin configuration |
+Add a feature area by writing a `Registrable` and appending it to the array in `Plugin::__construct()`.
 
-### Data Stores
+### Settings — single source of truth
 
-| Store | Location | Description |
-|-------|----------|-------------|
-| items | `src/store/items/` | Items CRUD state management |
-| settings | `src/store/settings/` | Settings state management |
-
-### Custom Hooks
-
-| Hook | Location | Description |
-|------|----------|-------------|
-| useItems | `src/hooks/useItems.js` | Items CRUD operations |
-| useItem | `src/hooks/useItems.js` | Single item operations |
-| useSettings | `src/hooks/useSettings.js` | Settings operations |
-| useSetting | `src/hooks/useSettings.js` | Single setting value |
-
-## Directory Structure
-
-```
-canvas/
-├── canvas.php              # Main plugin file
-├── uninstall.php           # Cleanup on plugin deletion
-├── includes/
-│   ├── class-installer.php # Activation/deactivation
-│   ├── class-plugin.php    # Main plugin class
-│   ├── API/                # REST API controllers
-│   │   ├── class-base-controller.php
-│   │   ├── class-items-controller.php
-│   │   └── class-settings-controller.php
-│   ├── Database/           # Database layer
-│   │   ├── class-migrator.php
-│   │   └── migrations/
-│   └── Models/             # Data models
-│       ├── class-base-model.php
-│       └── class-item.php
-├── src/                    # React source
-│   ├── index.jsx           # Entry point
-│   ├── components/
-│   │   ├── layout/         # AppShell, Sidebar, ErrorBoundary
-│   │   └── primitives/     # Badge, MetricCard
-│   ├── pages/              # Dashboard, Items, Settings
-│   ├── store/              # WordPress data stores
-│   ├── hooks/              # Custom React hooks
-│   ├── constants/          # Design tokens and API paths
-│   │   ├── index.js        # Consolidated exports
-│   │   ├── api.js          # API endpoint constants
-│   │   └── design.js       # Design system tokens
-│   └── styles/             # SCSS stylesheets
-├── build/                  # Compiled assets
-├── tests/                  # PHPUnit tests
-├── package.json
-├── composer.json
-├── phpcs.xml.dist
-└── phpunit.xml.dist
-```
-
-## Configuration
-
-### Settings Options
-
-The plugin stores settings in `canvas_settings` option:
-
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `site_title` | string | '' | Custom title for the installation |
-| `items_per_page` | string | '20' | Default pagination size |
-| `notifications_enabled` | bool | false | Enable notifications |
-| `debug_mode` | bool | false | Enable debug logging |
-| `log_retention` | string | '30' | Days to keep logs |
-| `preserve_data_on_uninstall` | bool | false | Keep data when plugin is deleted |
-
-### Capabilities
-
-The plugin registers these capabilities:
-
-| Capability | Granted To | Description |
-|------------|------------|-------------|
-| `manage_canvas` | Administrator | Full access including settings |
-| `view_canvas` | Administrator | View the admin interface |
-| `edit_canvas_content` | Administrator | Create/edit/delete items |
-
-To grant capabilities to other roles:
+`Canvas\Settings\Settings` owns the option name (`canvas_settings`), the defaults, the REST argument schema, and per-key sanitization (a PHP `match`). The REST controller, installer, and asset localizer all defer to it, so the schema can never drift.
 
 ```php
-$role = get_role( 'editor' );
-$role->add_cap( 'view_canvas' );
-$role->add_cap( 'edit_canvas_content' );
+use Canvas\Settings\Settings;
+
+$all     = Settings::all();                       // merged over defaults
+$perPage = Settings::get( 'items_per_page' );
+Settings::update( array( 'debug_mode' => true ) );  // sanitized + persisted
 ```
 
-## Multisite Support
+### Data layer
 
-Canvas fully supports WordPress multisite:
-
-- All database tables include `blog_id` column
-- Data is automatically isolated per site
-- Capabilities are managed per-site
-- Uninstall cleans up all sites
-
-## Security
-
-### SQL Injection Protection
-
-The `Base_Model` class includes column whitelist validation:
+Models extend `Canvas\Models\Base_Model` and set static configuration:
 
 ```php
-// In your model, define allowed columns:
-protected static array $allowed_columns = array(
-    'id', 'blog_id', 'title', 'status', 'created_at'
-);
-```
-
-Only whitelisted columns can be used in WHERE clauses and ORDER BY.
-
-### Capability Checks
-
-All REST endpoints verify user capabilities:
-
-```php
-public function get_items_permissions_check( $request ): bool {
-    return $this->check_permission( 'view_canvas' );
+final class My_Model extends Base_Model {
+    protected static string $table       = 'canvas_things';
+    protected static string $primary_key = 'id';
+    protected static array  $json_columns    = array( 'meta' );
+    protected static array  $allowed_columns = array(
+        'id', 'blog_id', 'name', 'status', 'meta', 'created_at', 'updated_at',
+    );
 }
 ```
 
-### Data Sanitization
+- **`$allowed_columns` is a security allowlist.** Columns not listed are silently dropped from WHERE/ORDER BY. A shared `build_where()` powers `find_all()` and `count()`; `find_like()` runs allowlisted LIKE searches so models never hand-write SQL.
+- **Multisite isolation is automatic** — every query is scoped by `blog_id`; all tables need a `blog_id` column.
+- **Caching uses the object cache** (`wp_cache_*`) with a per-model group and a `last_changed` marker in the cache key, so it is correct under external object caches and `clear_all_cache()` invalidates everything at once. `update()`/`delete()` clear the affected row.
+- **Transactions** run through a callback that commits on success and rolls back (and rethrows) on failure:
+  ```php
+  Base_Model::transaction( function () {
+      $id = Item::insert( /* … */ );
+      Item::update( $id, array( 'status' => 'active' ) );
+  } );
+  ```
 
-Use the base controller's sanitization methods:
+`Item` is the one worked example domain object; it uses the `Item_Status` backed enum — call `Item_Status::values()` wherever a list of valid statuses is needed. The `Item` model, `Items_Controller`, the Items page, and the `canvas_items` table are meant to be replaced wholesale with your own domain objects.
+
+### REST layer
+
+Controllers extend `Canvas\API\Base_Controller` (which extends `WP_REST_Controller`). The namespace comes from `Plugin::API_NAMESPACE` (`canvas/v1`). Register new controllers in `API\Router::controllers()`.
 
 ```php
-$title = $this->sanitize_text( $request['title'] );
-$count = $this->sanitize_int( $request['count'] );
-$enabled = $this->sanitize_bool( $request['enabled'] );
+final class Things_Controller extends Base_Controller {
+    protected $rest_base = 'things';
+
+    public function register_routes(): void {
+        register_rest_route( $this->namespace, '/' . $this->rest_base, array(
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => array( $this, 'get_items' ),
+            'permission_callback' => array( $this, 'get_items_permissions_check' ),
+        ) );
+    }
+}
 ```
 
-## WordPress Hooks
+### Frontend
 
-### Actions
+`src/index.jsx` is the entry point. All three admin pages render the same `#canvas-root`; `AppShell.jsx` chooses the view from the `page` query arg and uses the URL hash for sub-routing. State lives in `@wordpress/data` stores under `src/store/`; REST paths are centralized in `src/constants/api.js`. Styles use Sass modules — design tokens live in `src/styles/_tokens.scss` and are consumed with `@use '…/tokens' as *` (not the deprecated `@import`).
 
-| Hook | Description |
-|------|-------------|
-| `canvas_daily_cleanup` | Daily cron for maintenance tasks |
+## Project structure
 
-### Filters
+```
+canvas.php                       # Bootstrap: constants, autoloaders, lifecycle hooks
+uninstall.php                    # Self-contained cleanup
+bin/canvas-init.py               # Rename/initialize script (deletes itself)
+includes/
+├── class-plugin.php             # Thin component loader (singleton)
+├── class-installer.php          # Activation/deactivation, tables, capabilities
+├── Contracts/
+│   └── interface-registrable.php
+├── Admin/
+│   ├── class-menu.php
+│   └── class-assets.php
+├── API/
+│   ├── class-base-controller.php
+│   ├── class-router.php
+│   ├── class-items-controller.php
+│   └── class-settings-controller.php
+├── Settings/
+│   └── class-settings.php
+├── Models/
+│   ├── class-base-model.php
+│   ├── class-item.php
+│   └── enum-item-status.php
+└── Database/
+    ├── class-migrator.php
+    ├── class-migration-runner.php
+    └── migrations/              # NNN-description.php files
+src/                             # React source (see Architecture › Frontend)
+tests/                           # PHPUnit (Unit + Integration)
+.github/workflows/ci.yml         # CI: phpcs, phpstan, phpunit, lint, build
+.wp-env.json                     # Local WordPress environment
+phpstan.neon.dist                # Static analysis config
+```
 
-Extend with your own filters as needed.
+## Capabilities
 
-## Accessibility
+Custom capabilities are added to the administrator role on activation:
 
-Canvas follows WCAG 2.1 AA guidelines:
+| Capability | Purpose |
+|------------|---------|
+| `manage_canvas` | Full access including settings |
+| `view_canvas` | View the admin interface |
+| `edit_canvas_content` | Create/edit/delete items |
 
-### Navigation
-- `aria-current="page"` on active navigation items
-- `aria-label` on navigation regions
-- Keyboard navigation support
+Routes and admin pages gate on these (not `manage_options`). Grant them to other roles as needed:
 
-### Icons
-- Decorative icons use `aria-hidden="true"`
-- Functional icons have appropriate labels
+```php
+get_role( 'editor' )->add_cap( 'view_canvas' );
+```
 
-### Interactive Elements
-- Buttons have descriptive `aria-label` attributes
-- Loading states use `aria-busy` and `aria-live="polite"`
-- Empty states use `role="status"`
+## Settings
 
-### Lists
-- Item lists use `role="list"` and `role="listitem"`
-- Action buttons include item context in labels
+Stored in the `canvas_settings` option (defaults and schema owned by `Settings`):
+
+| Key | Type | Default |
+|-----|------|---------|
+| `site_title` | string | `''` |
+| `items_per_page` | enum (`10`/`20`/`50`/`100`) | `20` |
+| `notifications_enabled` | bool | `false` |
+| `debug_mode` | bool | `false` |
+| `preserve_data_on_uninstall` | bool | `false` |
+
+## Multisite, security, and uninstall
+
+- **Multisite** — all tables carry `blog_id`; queries are isolated per site; activation and uninstall iterate every site.
+- **Security** — column allowlist on dynamic SQL, `$wpdb->prepare()` everywhere, capability checks on every route, and the base controller's `sanitize_*()` helpers.
+- **Uninstall** (`uninstall.php`) drops tables, options (`canvas_settings`, `canvas_db_version`, `canvas_activated_at`, `canvas_completed_migrations`), capabilities, and scheduled events — unless `preserve_data_on_uninstall` is set. It is deliberately self-contained (WordPress loads it in isolation), so it uses literal names; keep them in sync with `Settings`.
+
+## Database migrations
+
+`Migration_Runner` runs pending migrations on `admin_init` when the stored `canvas_db_version` is behind `CANVAS_DB_VERSION` (bump it in `canvas.php` when the schema changes). Add migration files to `includes/Database/migrations/` named `NNN-description.php`, each defining a `canvas_migration_NNN()` function. Initial tables are created with `dbDelta()` in `Installer::create_tables()`.
 
 ## Testing
 
-Canvas includes both unit and integration test examples.
-
-### Running Tests
-
 ```bash
-# Run all tests
-composer test
-
-# Run only unit tests (no WordPress required)
-./vendor/bin/phpunit --testsuite unit
-
-# Run integration tests (requires WordPress test suite)
-./vendor/bin/phpunit --testsuite integration
+composer test:unit                              # no WordPress required (mocks)
+vendor/bin/phpunit --testsuite integration      # requires the WP test library
 ```
 
-### Test Structure
+Unit tests run against `tests/mocks/wordpress-functions.php`. Data providers use the `#[DataProvider]` attribute (required by PHPUnit 12).
 
-```
-tests/
-├── bootstrap.php           # Test environment setup
-├── mocks/
-│   └── wordpress-functions.php  # WP function mocks for unit tests
-├── Unit/
-│   └── Models/
-│       └── BaseModelTest.php    # Unit test examples
-└── Integration/
-    └── ItemModelIntegrationTest.php  # Integration test examples
-```
+## Continuous integration
 
-### Writing Unit Tests
+`.github/workflows/ci.yml` runs on every push/PR:
 
-Unit tests run without WordPress using mock functions:
+- **PHP** (8.3 and 8.4): `composer phpcs`, `composer phpstan`, `composer test:unit`.
+- **JavaScript**: `npm run lint` and `npm run build`.
 
-```php
-class MyModelTest extends TestCase {
-    /**
-     * @dataProvider validation_provider
-     */
-    public function test_validation( string $input, bool $expected ): void {
-        $result = MyModel::validate( $input );
-        $this->assertEquals( $expected, $result );
-    }
+Dependabot (`.github/dependabot.yml`) opens weekly update PRs for Composer, npm (with `@wordpress/*` grouped), and GitHub Actions.
 
-    public function validation_provider(): array {
-        return array(
-            'valid input'   => array( 'test', true ),
-            'invalid input' => array( '', false ),
-        );
-    }
-}
-```
+## API reference
 
-### Writing Integration Tests
-
-Integration tests require the WordPress test environment:
-
-```php
-class MyModelIntegrationTest extends WP_UnitTestCase {
-    public function test_create_and_find(): void {
-        $id = MyModel::insert( array( 'title' => 'Test' ) );
-        $item = MyModel::find( $id );
-
-        $this->assertNotNull( $item );
-        $this->assertEquals( 'Test', $item->title );
-    }
-}
-```
-
-## Uninstall Behavior
-
-When the plugin is deleted through WordPress admin:
-
-1. Database tables are dropped (unless `preserve_data_on_uninstall` is true)
-2. All options are removed
-3. Capabilities are removed from roles
-4. Scheduled events are cleared
-5. Transients are cleaned up
-
-## Usage Guide
-
-### Creating a New Model
-
-1. Create a new file in `includes/Models/`:
-
-```php
-<?php
-namespace Canvas\Models;
-
-class MyModel extends Base_Model {
-    protected static string $table = 'canvas_my_table';
-    protected static string $primary_key = 'id';
-    protected static array $json_columns = array( 'meta' );
-
-    // Define allowed columns for query validation
-    protected static array $allowed_columns = array(
-        'id', 'blog_id', 'name', 'status', 'meta', 'created_at', 'updated_at'
-    );
-
-    // Add custom finder methods
-    public static function find_by_status( string $status ): array {
-        return self::find_all( array( 'status' => $status ) );
-    }
-}
-```
-
-### Creating a REST Controller
-
-1. Create a new file in `includes/API/`:
-
-```php
-<?php
-namespace Canvas\API;
-
-class My_Controller extends Base_Controller {
-    protected $rest_base = 'my-endpoint';
-
-    public function register_routes(): void {
-        register_rest_route( $this->namespace, '/' . $this->rest_base, [
-            'methods' => 'GET',
-            'callback' => array( $this, 'get_items' ),
-            'permission_callback' => array( $this, 'get_items_permissions_check' ),
-        ] );
-    }
-
-    public function get_items_permissions_check( $request ): bool {
-        return $this->check_permission( 'view_canvas' );
-    }
-
-    public function get_items( $request ) {
-        // Your logic here
-        return $this->success_response( $data );
-    }
-}
-```
-
-2. Register in `class-plugin.php`:
-
-```php
-public function register_rest_routes(): void {
-    $controllers = array(
-        new API\Items_Controller(),
-        new API\Settings_Controller(),
-        new API\My_Controller(), // Add your controller
-    );
-    // ...
-}
-```
-
-### Creating a Data Store
-
-1. Create a new directory in `src/store/`:
-
-```javascript
-// src/store/my-store/index.js
-import { createReduxStore, register } from '@wordpress/data';
-
-export const STORE_NAME = 'canvas/my-store';
-
-const store = createReduxStore( STORE_NAME, {
-    reducer: ( state = {}, action ) => state,
-    actions: {},
-    selectors: {},
-} );
-
-register( store );
-export default store;
-```
-
-2. Import in `src/store/index.js`:
-
-```javascript
-import './my-store';
-export { STORE_NAME as MY_STORE } from './my-store';
-```
-
-### Creating a Custom Hook
-
-```javascript
-// src/hooks/useMyHook.js
-import { useSelect, useDispatch } from '@wordpress/data';
-import { MY_STORE } from '../store';
-
-export function useMyHook() {
-    const data = useSelect( ( select ) =>
-        select( MY_STORE ).getData()
-    , [] );
-
-    const { setData } = useDispatch( MY_STORE );
-
-    return { data, setData };
-}
-```
-
-### Using API Constants
-
-Centralized API paths prevent typos and make refactoring easier:
-
-```javascript
-// Import from constants
-import { API_PATHS } from '../constants/api';
-
-// Use in API calls
-const response = await apiFetch( { path: API_PATHS.ITEMS } );
-const item = await apiFetch( { path: API_PATHS.ITEM( id ) } );
-const settings = await apiFetch( { path: API_PATHS.SETTINGS } );
-
-// Available constants
-API_NAMESPACE    // 'canvas/v1'
-API_PATHS.ITEMS  // '/canvas/v1/items'
-API_PATHS.ITEM( id )  // '/canvas/v1/items/{id}'
-API_PATHS.SETTINGS    // '/canvas/v1/settings'
-```
-
-### Adding a New Page
-
-1. Create component in `src/pages/`:
-
-```jsx
-// src/pages/MyPage.jsx
-import { __ } from '@wordpress/i18n';
-
-export default function MyPage( { onNavigate } ) {
-    return (
-        <div className="canvas-page-content">
-            <div className="canvas-page-header">
-                <div className="canvas-page-header-content">
-                    <h1 className="canvas-page-title">
-                        { __( 'My Page', 'canvas' ) }
-                    </h1>
-                </div>
-            </div>
-            {/* Content */}
-        </div>
-    );
-}
-```
-
-2. Add to `AppShell.jsx` routing:
-
-```jsx
-// In renderContent()
-if ( page === 'canvas-mypage' ) {
-    return <MyPage onNavigate={ navigate } />;
-}
-```
-
-3. Add to `Sidebar.jsx` navigation:
-
-```jsx
-const mainItems = [
-    // ...existing items
-    {
-        id: 'canvas-mypage',
-        label: __( 'My Page', 'canvas' ),
-        icon: 'admin-generic',
-    },
-];
-```
-
-4. Register admin page in `class-plugin.php`:
-
-```php
-add_submenu_page(
-    self::ADMIN_SLUG,
-    __( 'My Page', 'canvas' ),
-    __( 'My Page', 'canvas' ),
-    'view_canvas',
-    self::ADMIN_SLUG . '-mypage',
-    array( $this, 'render_admin_page' )
-);
-```
-
-## Customization
-
-### Plugin Name
-
-1. Rename `canvas.php` and update plugin header
-2. Update namespace in all PHP files (find/replace `Canvas\` → `YourPlugin\`)
-3. Update text domain in PHP and JS files (find/replace `'canvas'` → `'your-plugin'`)
-4. Update `package.json` name and `composer.json` name
-5. Update table prefixes in models and installer
-6. Update store names (`canvas/items` → `your-plugin/items`)
-
-### Database Tables
-
-1. Update `Installer::create_tables()` with your schema
-2. Create migration files in `includes/Database/migrations/`
-3. Update `CANVAS_DB_VERSION` when schema changes
-
-### Capabilities
-
-Modify `Installer::add_capabilities()` for your permission requirements.
-
-## API Reference
-
-### Base_Model Methods
+### `Base_Model`
 
 | Method | Description |
 |--------|-------------|
-| `find( int $id )` | Find record by primary key |
-| `find_all( array $where, string $order_by, string $order, int $limit, int $offset )` | Find with conditions |
-| `count( array $where )` | Count matching records |
-| `insert( array $data )` | Insert new record, returns ID |
-| `update( int $id, array $data )` | Update record |
-| `delete( int $id )` | Delete record |
-| `begin_transaction()` | Start transaction |
-| `commit()` | Commit transaction |
-| `rollback()` | Rollback transaction |
-| `encode_json( mixed $data )` | Encode data as JSON |
-| `decode_json( string $json )` | Decode JSON string |
-| `clear_cache( int $id )` | Clear cache for a specific record |
-| `clear_all_cache()` | Clear all cached records for this model |
+| `find( int $id, bool $skip_cache = false )` | Find by primary key (object-cached). |
+| `find_all( array $where, string $order_by, string $order, int $limit, int $offset )` | Find with allowlisted conditions. |
+| `find_like( string $column, string $term, … )` | Allowlisted LIKE search. |
+| `count( array $where )` | Count matching rows. |
+| `insert( array $data )` / `update( int $id, array $data )` / `delete( int $id )` | CRUD. |
+| `transaction( callable $cb )` | Run `$cb` atomically (commit / rollback + rethrow). |
+| `clear_cache( int $id )` / `clear_all_cache()` | Invalidate cached rows. |
+| `encode_json()` / `decode_json()` | JSON helpers. |
 
-### Base_Model Caching
-
-Models include built-in transient caching for `find()` operations:
-
-```php
-class MyModel extends Base_Model {
-    // Enable/disable caching (default: true)
-    protected static bool $cache_enabled = true;
-
-    // Cache TTL in seconds (default: 1 hour)
-    protected static int $cache_ttl = HOUR_IN_SECONDS;
-}
-
-// Cache is automatically used
-$item = MyModel::find( 123 );
-
-// Bypass cache when needed
-$item = MyModel::find( 123, true ); // skip_cache = true
-
-// Cache is automatically cleared on update/delete
-MyModel::update( 123, $data ); // Clears cache
-MyModel::delete( 123 );        // Clears cache
-
-// Manually clear cache
-MyModel::clear_cache( 123 );
-MyModel::clear_all_cache();
-```
-
-### Base_Controller Methods
+### `Base_Controller`
 
 | Method | Description |
 |--------|-------------|
-| `check_permission( string $capability )` | Check user capability |
-| `sanitize_text( mixed $value )` | Sanitize text input |
-| `sanitize_int( mixed $value )` | Sanitize integer input |
-| `sanitize_bool( mixed $value )` | Sanitize boolean input |
-| `get_pagination_params( $request )` | Get pagination from request |
-| `paginated_response( array $items, int $total, int $page, int $per_page )` | Create paginated response |
-| `success_response( mixed $data, int $status )` | Create success response |
-| `error_response( string $message, string $code, int $status )` | Create error response |
+| `check_permission( string $cap )` | Capability check returning `true`/`WP_Error`. |
+| `sanitize_text/textarea/int/bool/email/url/enum()` | Input sanitization. |
+| `get_pagination_params()` / `paginated_response()` | Pagination with `X-WP-Total` headers. |
+| `success_response()` / `error_response()` | Standard responses. |
+
+### `Settings`
+
+| Method | Description |
+|--------|-------------|
+| `all()` | All settings merged over defaults. |
+| `get( string $key, $fallback = null )` | One value. |
+| `update( array $updates )` | Sanitize + persist provided keys. |
+| `defaults()` / `rest_args()` | Defaults and REST schema. |
+| `install_defaults()` | Seed the option on activation. |
 
 ## License
 
