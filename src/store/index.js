@@ -3,7 +3,7 @@
  *
  * Registers all data stores and exports store names.
  *
- * @package Canvas
+ * @package
  */
 
 // Import stores to register them.

@@ -8,8 +8,11 @@
  * @package Canvas
  */
 
+declare(strict_types=1);
+
 namespace Canvas\API;
 
+use Canvas\Plugin;
 use WP_REST_Controller;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -37,7 +40,7 @@ abstract class Base_Controller extends WP_REST_Controller {
 	 *
 	 * @var string
 	 */
-	protected $namespace = 'canvas/v1';
+	protected $namespace = Plugin::API_NAMESPACE;
 
 	/**
 	 * Route base for this controller.
@@ -131,13 +134,13 @@ abstract class Base_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitize an integer input.
 	 *
-	 * @param mixed $value The value to sanitize.
-	 * @param int   $default Default value if input is invalid.
+	 * @param mixed $value    The value to sanitize.
+	 * @param int   $fallback Value to use when the input is invalid.
 	 * @return int Sanitized integer.
 	 */
-	protected function sanitize_int( mixed $value, int $default = 0 ): int {
+	protected function sanitize_int( mixed $value, int $fallback = 0 ): int {
 		$sanitized = absint( $value );
-		return $sanitized > 0 ? $sanitized : $default;
+		return $sanitized > 0 ? $sanitized : $fallback;
 	}
 
 	/**
@@ -173,14 +176,14 @@ abstract class Base_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitize an array of allowed values.
 	 *
-	 * @param mixed         $value The value to check.
-	 * @param array<string> $allowed Array of allowed values.
-	 * @param string        $default Default value if not in allowed list.
-	 * @return string The value if allowed, or default.
+	 * @param mixed         $value    The value to check.
+	 * @param array<string> $allowed  Array of allowed values.
+	 * @param string        $fallback Value to use when not in the allowed list.
+	 * @return string The value if allowed, otherwise the fallback.
 	 */
-	protected function sanitize_enum( mixed $value, array $allowed, string $default ): string {
+	protected function sanitize_enum( mixed $value, array $allowed, string $fallback ): string {
 		$value = $this->sanitize_text( $value );
-		return in_array( $value, $allowed, true ) ? $value : $default;
+		return in_array( $value, $allowed, true ) ? $value : $fallback;
 	}
 
 	/**
@@ -236,8 +239,8 @@ abstract class Base_Controller extends WP_REST_Controller {
 		);
 
 		// Add standard pagination headers.
-		$response->header( 'X-WP-Total', $total );
-		$response->header( 'X-WP-TotalPages', $total_pages );
+		$response->header( 'X-WP-Total', (string) $total );
+		$response->header( 'X-WP-TotalPages', (string) $total_pages );
 
 		return $response;
 	}

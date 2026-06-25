@@ -1,3 +1,5 @@
+@use "../tokens" as *;
+
 /**
  * Card Styles
  */
@@ -16,21 +18,23 @@
 // Individual item card
 .canvas-item-card {
 	transition: 0.3s ease;
-	box-shadow: 0px 0px 0px 1px rgba(67, 48, 141, 0.1),
-		0px 26px 7px 0px rgba(66, 59, 104, 0),
-		0px 17px 7px 0px rgba(66, 59, 104, 0),
-		0px 9px 6px 0px rgba(66, 59, 104, 0.02),
-		0px 4px 4px 0px rgba(66, 59, 104, 0.03),
-		0px 1px 2px 0px rgba(66, 59, 104, 0.03);
+	box-shadow:
+		0 0 0 1px rgba(67, 48, 141, 0.1),
+		0 26px 7px 0 rgba(66, 59, 104, 0),
+		0 17px 7px 0 rgba(66, 59, 104, 0),
+		0 9px 6px 0 rgba(66, 59, 104, 0.02),
+		0 4px 4px 0 rgba(66, 59, 104, 0.03),
+		0 1px 2px 0 rgba(66, 59, 104, 0.03);
 
 	&:hover {
 		transform: translateY(-2px);
-		box-shadow: 0px 0px 0px 1px rgba(67, 48, 141, 0.15),
-			0px 32px 10px 0px rgba(66, 59, 104, 0),
-			0px 21px 9px 0px rgba(66, 59, 104, 0.01),
-			0px 12px 8px 0px rgba(66, 59, 104, 0.03),
-			0px 5px 5px 0px rgba(66, 59, 104, 0.04),
-			0px 1px 3px 0px rgba(66, 59, 104, 0.05);
+		box-shadow:
+			0 0 0 1px rgba(67, 48, 141, 0.15),
+			0 32px 10px 0 rgba(66, 59, 104, 0),
+			0 21px 9px 0 rgba(66, 59, 104, 0.01),
+			0 12px 8px 0 rgba(66, 59, 104, 0.03),
+			0 5px 5px 0 rgba(66, 59, 104, 0.04),
+			0 1px 3px 0 rgba(66, 59, 104, 0.05);
 	}
 
 	&__header {
@@ -67,10 +71,12 @@
 }
 
 .canvas-settings-card {
-	box-shadow: 0px 0px 0px 1px rgba(67, 48, 141, 0.1),
-		0px 1px 2px 0px rgba(66, 59, 104, 0.03);
+	box-shadow:
+		0 0 0 1px rgba(67, 48, 141, 0.1),
+		0 1px 2px 0 rgba(66, 59, 104, 0.03);
 
 	.components-card__header {
+
 		h2 {
 			margin: 0;
 			font-size: 16px;

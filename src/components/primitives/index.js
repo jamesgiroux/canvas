@@ -3,7 +3,7 @@
  *
  * Export all primitive components for easy importing.
  *
- * @package Canvas
+ * @package
  */
 
 export { default as Badge } from './Badge';

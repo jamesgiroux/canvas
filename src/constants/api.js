@@ -3,7 +3,7 @@
  *
  * Centralized API endpoint paths and configuration.
  *
- * @package Canvas
+ * @package
  */
 
 /**

@@ -10,6 +10,7 @@
 
 namespace Canvas\Tests\Unit\Models;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -115,7 +116,7 @@ class BaseModelTest extends TestCase {
 	 *
 	 * @return array Test cases.
 	 */
-	public function column_validation_provider(): array {
+	public static function column_validation_provider(): array {
 		return array(
 			'valid column id'         => array( 'id', true ),
 			'valid column blog_id'    => array( 'blog_id', true ),
@@ -133,11 +134,10 @@ class BaseModelTest extends TestCase {
 	 * This demonstrates the validation pattern used in Base_Model
 	 * for preventing SQL injection in column names.
 	 *
-	 * @dataProvider column_validation_provider
-	 *
 	 * @param string $column   Column name to validate.
 	 * @param bool   $expected Expected result.
 	 */
+	#[DataProvider( 'column_validation_provider' )]
 	public function test_column_validation( string $column, bool $expected ): void {
 		$allowed_columns = array( 'id', 'blog_id', 'created_at', 'updated_at' );
 
@@ -176,7 +176,7 @@ class BaseModelTest extends TestCase {
 	 *
 	 * @return array Test cases.
 	 */
-	public function order_direction_provider(): array {
+	public static function order_direction_provider(): array {
 		return array(
 			'uppercase ASC'   => array( 'ASC', 'ASC' ),
 			'uppercase DESC'  => array( 'DESC', 'DESC' ),
@@ -191,11 +191,10 @@ class BaseModelTest extends TestCase {
 	/**
 	 * Test order direction sanitization.
 	 *
-	 * @dataProvider order_direction_provider
-	 *
 	 * @param string $input    Input value.
 	 * @param string $expected Expected sanitized value.
 	 */
+	#[DataProvider( 'order_direction_provider' )]
 	public function test_order_direction_sanitization( string $input, string $expected ): void {
 		$sanitized = strtoupper( $input ) === 'ASC' ? 'ASC' : 'DESC';
 

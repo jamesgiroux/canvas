@@ -9,7 +9,11 @@
  * @package Canvas
  */
 
+declare(strict_types=1);
+
 namespace Canvas;
+
+use Canvas\Settings\Settings;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
@@ -135,7 +139,7 @@ class Installer {
 		self::set_default_options();
 
 		// Store activation timestamp for reference.
-		update_option( 'canvas_activated', time() );
+		update_option( 'canvas_activated_at', time() );
 
 		// Store current DB version.
 		update_option( 'canvas_db_version', CANVAS_DB_VERSION );
@@ -182,30 +186,6 @@ class Installer {
 		) {$charset_collate};";
 
 		dbDelta( $sql );
-
-		// Example table: canvas_audit_log
-		// Append-only audit log for compliance tracking.
-		$audit_table = $wpdb->prefix . 'canvas_audit_log';
-
-		$audit_sql = "CREATE TABLE {$audit_table} (
-			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			blog_id bigint(20) unsigned NOT NULL DEFAULT 1,
-			user_id bigint(20) unsigned NOT NULL DEFAULT 0,
-			action varchar(100) NOT NULL,
-			object_type varchar(100) NOT NULL DEFAULT '',
-			object_id bigint(20) unsigned NOT NULL DEFAULT 0,
-			details text NOT NULL,
-			ip_address varchar(45) NOT NULL DEFAULT '',
-			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			PRIMARY KEY (id),
-			KEY blog_id (blog_id),
-			KEY user_id (user_id),
-			KEY action (action),
-			KEY object_type_id (object_type, object_id),
-			KEY created_at (created_at)
-		) {$charset_collate};";
-
-		dbDelta( $audit_sql );
 	}
 
 	/**
@@ -254,29 +234,13 @@ class Installer {
 	/**
 	 * Set default plugin options.
 	 *
-	 * Only sets options if they don't already exist.
-	 * Customize this for your plugin's default configuration.
+	 * Defaults live in the Settings registry so they cannot drift from the REST
+	 * controller or the rest of the plugin.
 	 *
 	 * @return void
 	 */
 	private static function set_default_options(): void {
-		// Default settings - only set if not already present.
-		$defaults = array(
-			'canvas_settings' => array(
-				'enabled'            => true,
-				'notifications'      => true,
-				'retention_days'     => 90,
-				'items_per_page'     => 20,
-				'enable_audit_log'   => true,
-				'enable_api'         => true,
-			),
-		);
-
-		foreach ( $defaults as $option_name => $default_value ) {
-			if ( false === get_option( $option_name ) ) {
-				add_option( $option_name, $default_value );
-			}
-		}
+		Settings::install_defaults();
 	}
 
 	/**
@@ -315,20 +279,10 @@ class Installer {
 	 * @return void
 	 */
 	private static function single_site_deactivate(): void {
-		// Clear any scheduled cron events.
-		wp_clear_scheduled_hook( 'canvas_daily_cleanup' );
-		wp_clear_scheduled_hook( 'canvas_hourly_tasks' );
-
-		// If using Action Scheduler, unschedule pending actions.
-		if ( function_exists( 'as_unschedule_all_actions' ) ) {
-			as_unschedule_all_actions( 'canvas_scheduled_task' );
-		}
-
 		// Flush rewrite rules.
 		flush_rewrite_rules();
 
-		// Uncomment to remove capabilities on deactivation:
-		// self::remove_capabilities();
+		// To remove capabilities on deactivation, call self::remove_capabilities() here.
 	}
 
 	/**
@@ -340,7 +294,7 @@ class Installer {
 	 *
 	 * @return void
 	 */
-	private static function remove_capabilities(): void {
+	public static function remove_capabilities(): void {
 		$admin_role = get_role( 'administrator' );
 
 		if ( ! $admin_role ) {

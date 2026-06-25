@@ -1,0 +1,15 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 5
+	phpVersion: 80300
+	paths:
+		- canvas.php
+		- uninstall.php
+		- includes
+	bootstrapFiles:
+		- .phpstan/bootstrap.php
+	# Runtime version guards compare against the host's PHP/WP version, which is
+	# unknown during static analysis; do not flag them as always true/false.
+	treatPhpDocTypesAsCertain: false

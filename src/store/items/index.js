@@ -4,7 +4,7 @@
  * WordPress data store for managing items state.
  * Uses @wordpress/data for Redux-like state management.
  *
- * @package Canvas
+ * @package
  */
 
 import { createReduxStore, register } from '@wordpress/data';
@@ -169,7 +169,9 @@ const actions = {
 
 			try {
 				const queryString = new URLSearchParams( params ).toString();
-				const endpoint = `${ API_PATHS.ITEMS }${ queryString ? '?' + queryString : '' }`;
+				const endpoint = `${ API_PATHS.ITEMS }${
+					queryString ? '?' + queryString : ''
+				}`;
 
 				const response = await apiFetch( { path: endpoint } );
 

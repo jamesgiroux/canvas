@@ -3,7 +3,7 @@
  *
  * Custom hook for accessing settings store with simplified API.
  *
- * @package Canvas
+ * @package
  */
 
 import { useCallback } from '@wordpress/element';

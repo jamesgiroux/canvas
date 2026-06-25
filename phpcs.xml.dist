@@ -4,6 +4,7 @@
 
 	<!-- Scan these files -->
 	<file>canvas.php</file>
+	<file>uninstall.php</file>
 	<file>includes/</file>
 
 	<!-- Exclude these paths -->
@@ -11,6 +12,7 @@
 	<exclude-pattern>/node_modules/</exclude-pattern>
 	<exclude-pattern>/build/</exclude-pattern>
 	<exclude-pattern>/tests/</exclude-pattern>
+	<exclude-pattern>/bin/</exclude-pattern>
 
 	<!-- Show progress and sniff codes -->
 	<arg value="ps"/>
@@ -23,40 +25,70 @@
 		<!-- Allow short array syntax -->
 		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
 		<!-- Allow short ternary -->
-		<exclude name="WordPress.PHP.DisallowShortTernary"/>
+		<exclude name="Universal.Operators.DisallowShortTernary"/>
 	</rule>
 
-	<!-- WordPress VIP Rules for enterprise-grade code -->
+	<!-- WordPress-Extra for stricter, modern code -->
 	<rule ref="WordPress-Extra"/>
 
+	<!-- Allowed global prefixes (functions, hooks, options, classes) -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="canvas"/>
+				<element value="Canvas"/>
+			</property>
+		</properties>
+	</rule>
+
 	<!-- PHP Compatibility -->
-	<config name="testVersion" value="8.0-"/>
+	<config name="testVersion" value="8.3-"/>
 	<rule ref="PHPCompatibilityWP"/>
 
 	<!-- WordPress text domain -->
 	<config name="text_domain" value="canvas"/>
 
 	<!-- Minimum WordPress version -->
-	<config name="minimum_wp_version" value="6.4"/>
+	<config name="minimum_wp_version" value="7.0"/>
 
-	<!-- Allow using global $wpdb -->
+	<!-- The models use the object cache (wp_cache_*) rather than transients -->
 	<rule ref="WordPress.DB.DirectDatabaseQuery">
 		<properties>
 			<property name="customCacheGetFunctions" type="array">
-				<element value="get_transient"/>
+				<element value="wp_cache_get"/>
 			</property>
 			<property name="customCacheSetFunctions" type="array">
-				<element value="set_transient"/>
+				<element value="wp_cache_set"/>
 			</property>
 		</properties>
 	</rule>
 
-	<!-- Allow inline SQL for models -->
+	<!-- Allow interpolated (but still prepared) table names in the data layer -->
 	<rule ref="WordPress.DB.PreparedSQL.InterpolatedNotPrepared">
 		<exclude-pattern>includes/Models/</exclude-pattern>
 	</rule>
 
-	<!-- File comment requirement -->
+	<!--
+		The data layer passes an array of prepared values to $wpdb->prepare()
+		and builds placeholders dynamically, which the placeholder sniff cannot
+		verify statically. The values are still prepared.
+	-->
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders">
+		<exclude-pattern>includes/Models/</exclude-pattern>
+	</rule>
+
+	<!-- Custom capabilities registered by this plugin -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_canvas"/>
+				<element value="view_canvas"/>
+				<element value="edit_canvas_content"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- File comment requirement handled by class/file docblocks already present -->
 	<rule ref="Squiz.Commenting.FileComment.Missing">
 		<severity>0</severity>
 	</rule>

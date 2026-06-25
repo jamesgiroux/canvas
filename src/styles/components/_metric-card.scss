@@ -1,3 +1,5 @@
+@use "../tokens" as *;
+
 /**
  * Metric Card Styles
  *
@@ -5,6 +7,7 @@
  */
 
 .canvas-metric-card {
+
 	&__body {
 		display: flex;
 		align-items: flex-start;
@@ -72,6 +75,7 @@
 
 	// Variants.
 	&--success {
+
 		.canvas-metric-card__icon {
 			background: #edfaef;
 			color: #00a32a;
@@ -79,6 +83,7 @@
 	}
 
 	&--warning {
+
 		.canvas-metric-card__icon {
 			background: #fcf9e8;
 			color: #dba617;
@@ -86,6 +91,7 @@
 	}
 
 	&--error {
+
 		.canvas-metric-card__icon {
 			background: #fcf0f1;
 			color: #d63638;
@@ -93,6 +99,7 @@
 	}
 
 	&--info {
+
 		.canvas-metric-card__icon {
 			background: #f0f6fc;
 			color: #72aee6;
@@ -102,6 +109,7 @@
 
 // Grid layout.
 .canvas-metric-grid {
+
 	@media (max-width: 782px) {
 		grid-template-columns: repeat(2, 1fr) !important;
 	}

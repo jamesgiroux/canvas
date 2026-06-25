@@ -4,7 +4,7 @@
  * Centralized design tokens for consistent styling.
  * Based on WordPress admin color scheme.
  *
- * @package Canvas
+ * @package
  */
 
 /**
@@ -88,7 +88,8 @@ export const BADGE_VARIANTS = {
  * Typography scale.
  */
 export const TYPOGRAPHY = {
-	fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif",
+	fontFamily:
+		"-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif",
 	fontSize: {
 		xs: '11px',
 		sm: '12px',
