@@ -21,16 +21,16 @@
 		"env:stop": "wp-env stop"
 	},
 	"devDependencies": {
-		"@wordpress/env": "^10.0.0",
-		"@wordpress/scripts": "^32.0.0"
+		"@wordpress/env": "^11.9.0",
+		"@wordpress/scripts": "^32.5.0"
 	},
 	"dependencies": {
-		"@wordpress/api-fetch": "^7.0.0",
-		"@wordpress/components": "^35.0.0",
+		"@wordpress/api-fetch": "^7.49.0",
+		"@wordpress/components": "^36.0.0",
 		"@wordpress/data": "^10.0.0",
 		"@wordpress/element": "^8.0.0",
 		"@wordpress/i18n": "^6.0.0",
-		"@wordpress/notices": "^5.0.0"
+		"@wordpress/notices": "^5.49.0"
 	},
 	"browserslist": [
 		"extends @wordpress/browserslist-config"
