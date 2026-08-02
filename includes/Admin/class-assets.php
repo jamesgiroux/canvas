@@ -80,6 +80,11 @@ final class Assets implements Registrable {
 			'adminUrl'    => admin_url(),
 			'pluginUrl'   => CANVAS_URL,
 			'version'     => CANVAS_VERSION,
+			// Mirrors the condition Menu uses to register the style guide, so the
+			// sidebar can offer the same route the menu does. The admin takeover
+			// hides wp-admin's own menu, so without this the page is registered
+			// but unreachable from any visible navigation.
+			'isDebug'     => defined( 'WP_DEBUG' ) && WP_DEBUG,
 			'currentUser' => array(
 				'id'           => $user->ID,
 				'displayName'  => $user->display_name,
@@ -128,6 +133,7 @@ final class Assets implements Registrable {
 			'toplevel_page_' . $slug,
 			$slug . '_page_' . $slug . '-items',
 			$slug . '_page_' . $slug . '-settings',
+			$slug . '_page_' . $slug . '-style-guide',
 		);
 
 		return in_array( $hook_suffix, $screens, true );

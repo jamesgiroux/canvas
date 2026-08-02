@@ -32,3 +32,10 @@ wp-content/
 # Test artifacts
 tests/coverage/
 junit.xml
+
+# Planning docs stay local; never shipped in a scaffolded plugin.
+docs/plans/
+
+# Python bytecode from bin/ and the rename tests.
+__pycache__/
+*.py[cod]

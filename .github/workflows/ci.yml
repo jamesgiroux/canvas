@@ -16,6 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Rename invariants
+        run: python3 -m unittest discover -s tests/bin
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -52,6 +55,9 @@ jobs:
 
       - name: Lint JS & CSS
         run: npm run lint
+
+      - name: Token guard
+        run: npm run test:tokens
 
       - name: Build assets
         run: npm run build

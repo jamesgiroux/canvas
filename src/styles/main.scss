@@ -6,13 +6,14 @@
  * @package Canvas
  */
 
-// Design tokens (Sass variables) and component partials.
-@use "tokens" as *;
+// Design tokens and component partials.
+@use "tokens";
+@use "components/typography";
 @use "components/badge";
-@use "components/metric-card";
-@use "components/filters";
-@use "components/cards";
-@use "components/loading";
+@use "components/data";
+@use "components/controls";
+@use "components/surfaces";
+@use "components/motion";
 @use "components/error-boundary";
 
 // ============================================================================
@@ -21,7 +22,7 @@
 
 // Apply dark background at the root level
 html.wp-toolbar {
-	background: #1e1e1e;
+	background: var(--canvas-bg-frame, #1e1e1e);
 	padding-top: 0;
 }
 
@@ -35,7 +36,7 @@ div#wpadminbar {
 div#wpcontent {
 	margin: 0;
 	position: relative;
-	background: #1e1e1e;
+	background: var(--canvas-bg-frame);
 }
 
 @media (max-width: 1250px) {
@@ -48,7 +49,7 @@ div#wpcontent {
 
 // Hide WordPress notices on Canvas pages
 .toplevel_page_canvas .notice,
-.canvas-page .notice {
+body[class*="_page_canvas"] .notice {
 	display: none;
 }
 
@@ -66,7 +67,7 @@ div#wpcontent {
 }
 
 #wpwrap {
-	background: #1e1e1e;
+	background: var(--canvas-bg-frame);
 }
 
 @media (max-width: 1250px) {
@@ -83,7 +84,7 @@ div#wpcontent {
 .canvas-container {
 	display: flex;
 	min-height: 100vh;
-	background: #1e1e1e;
+	background: var(--canvas-bg-frame);
 
 	@media (max-width: 1250px) {
 		flex-direction: column;
@@ -97,8 +98,9 @@ div#wpcontent {
 
 .canvas-sidebar {
 	width: 300px;
-	background: #1e1e1e;
-	color: #c7c7c7;
+	box-sizing: border-box;
+	background: var(--canvas-bg-frame);
+	color: var(--canvas-on-dark-2);
 	display: flex;
 	flex-direction: column;
 	overflow-y: auto;
@@ -116,7 +118,7 @@ div#wpcontent {
 	position: relative;
 	user-select: auto;
 	opacity: 1;
-	background: #1e1e1e;
+	background: var(--canvas-bg-frame);
 }
 
 // Back to WP Admin button
@@ -128,17 +130,17 @@ div#wpcontent {
 	}
 
 	a {
-		color: #949494;
+		color: var(--canvas-on-dark-2);
 		text-decoration: none;
 		display: flex;
 		align-items: center;
 		gap: 8px;
 		padding: 10px 16px;
 		font-size: 13px;
-		transition: color 0.2s ease;
+		transition: color var(--canvas-duration-hover) var(--canvas-ease-out);
 
 		&:hover {
-			color: #fff;
+			color: var(--canvas-on-dark);
 		}
 
 		.dashicons {
@@ -158,7 +160,7 @@ div#wpcontent {
 		align-items: center;
 		gap: 10px;
 		font-size: 20px;
-		color: #e0e0e0;
+		color: var(--canvas-on-dark);
 		margin: 0 0 8px 0;
 		font-weight: 600;
 		line-height: 1.2;
@@ -173,7 +175,7 @@ div#wpcontent {
 
 	.canvas-sidebar-subtitle {
 		font-size: 13px;
-		color: #c7c7c7;
+		color: var(--canvas-on-dark-2);
 		margin: 0;
 		padding-left: 0;
 	}
@@ -202,14 +204,14 @@ div#wpcontent {
 			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: 0.5px;
-			color: #666;
+			color: var(--canvas-on-dark-2);
 		}
 	}
 
 	.components-button {
 		text-align: left;
 		padding: 10px 6px 10px 16px !important;
-		color: #949494 !important;
+		color: var(--canvas-on-dark-2) !important;
 		margin: 0 auto !important;
 		width: 100% !important;
 		display: flex !important;
@@ -233,23 +235,32 @@ div#wpcontent {
 		}
 
 		&:hover {
-			background: #2f2f2f !important;
-			color: #fff !important;
+			background: var(--canvas-frame-2) !important;
+			color: var(--canvas-on-dark) !important;
 		}
 
-		&:focus,
+		&:focus {
+			background: var(--canvas-frame-2) !important;
+			color: var(--canvas-on-dark) !important;
+		}
+
+		// Keyboard focus adds the ring on top of the hover treatment. The base
+		// rule above clears the button's own box-shadow, so this restores a
+		// visible indicator rather than leaving keyboard users without one.
 		&:focus-visible {
-			box-shadow: none !important;
-			background: #2f2f2f !important;
-			color: #fff !important;
+			background: var(--canvas-frame-2) !important;
+			color: var(--canvas-on-dark) !important;
+			outline: 2px solid var(--canvas-focus-ring-dark);
+			outline-offset: 2px;
+			box-shadow: 0 0 0 3px rgba(116, 184, 235, 0.16) !important;
 		}
 
 		&.is-active {
-			color: #fff !important;
-			background: #2f2f2f !important;
+			color: var(--canvas-on-dark) !important;
+			background: var(--canvas-frame-2) !important;
 
 			&:hover {
-				background: #2f2f2f !important;
+				background: var(--canvas-frame-2) !important;
 			}
 		}
 	}
@@ -262,8 +273,8 @@ div#wpcontent {
 .canvas-content {
 	flex: 1;
 	margin: 24px 24px 24px 0;
-	background: #fff;
-	border-radius: 8px;
+	background: var(--canvas-surface);
+	border-radius: var(--canvas-radius-sm);
 	font-size: 16px;
 	overflow: hidden;
 	overflow-y: auto;
@@ -276,7 +287,9 @@ div#wpcontent {
 
 .canvas-content-inner {
 	min-height: 100%;
-	background: linear-gradient(180deg, #fff 0%, #f7f7fc 100%);
+	background: var(--canvas-page-wash), var(--canvas-surface);
+	background-repeat: no-repeat, repeat;
+	background-size: 100% clamp(720px, 100vh, 960px), auto;
 
 	@media (max-width: 1250px) {
 		flex-direction: column;
@@ -296,7 +309,7 @@ div#wpcontent {
 .canvas-view {
 	opacity: 1;
 	transform: translateY(0);
-	transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+	transition: opacity var(--canvas-duration-route) var(--canvas-ease-out), transform var(--canvas-duration-route) var(--canvas-ease-out);
 
 	&.canvas-view-entering {
 		opacity: 0;
@@ -306,6 +319,10 @@ div#wpcontent {
 
 // Reduced motion preference
 @media (prefers-reduced-motion: reduce) {
+
+	.canvas-back-to-admin a {
+		transition: none;
+	}
 
 	.canvas-view {
 		transition: none;
@@ -341,18 +358,11 @@ div#wpcontent {
 }
 
 .canvas-page-title {
-	font-size: 32px;
-	font-weight: 600;
 	margin: 0 0 8px 0;
-	line-height: 1.2;
-	color: #1e1e1e;
 }
 
 .canvas-page-description {
-	font-size: 14px;
-	color: #666;
 	margin: 0;
-	line-height: 1.5;
 }
 
 .canvas-page-actions {
@@ -360,8 +370,6 @@ div#wpcontent {
 	gap: 12px;
 	align-items: center;
 
-	// Scoped override of the sidebar button styles defined above.
-	// stylelint-disable-next-line no-descending-specificity
 	.components-button {
 		height: 40px;
 	}
@@ -379,6 +387,6 @@ div#wpcontent {
 		font-size: 16px;
 		font-weight: 600;
 		margin: 0 0 16px 0;
-		color: #1e1e1e;
+		color: var(--canvas-ink);
 	}
 }

@@ -21,6 +21,7 @@ import {
 	TextareaControl,
 } from '@wordpress/components';
 import Badge from '../components/primitives/Badge';
+import PageHeader from '../components/primitives/PageHeader';
 import { useItems } from '../hooks';
 
 /**
@@ -136,22 +137,15 @@ export default function Items( { onNavigate } ) {
 
 	return (
 		<div className="canvas-page-content">
-			{/* Page Header */}
-			<div className="canvas-page-header">
-				<div className="canvas-page-header-content">
-					<h1 className="canvas-page-title">
-						{ __( 'Items', 'canvas' ) }
-					</h1>
-					<p className="canvas-page-description">
-						{ __( 'Manage your items here.', 'canvas' ) }
-					</p>
-				</div>
-				<div className="canvas-page-actions">
+			<PageHeader
+				title={ __( 'Items', 'canvas' ) }
+				description={ __( 'Manage your items here.', 'canvas' ) }
+				actions={
 					<Button variant="primary" onClick={ handleCreate }>
 						{ __( 'Add New', 'canvas' ) }
 					</Button>
-				</div>
-			</div>
+				}
+			/>
 
 			{ error && (
 				<Notice status="error" isDismissible={ false }>

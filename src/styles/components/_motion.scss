@@ -1,0 +1,106 @@
+/**
+ * Motion
+ *
+ * Load choreography for surfaces, never for the shell. Sections blur in and
+ * rise on a stagger; skeletons shimmer while data is in flight. Every motion
+ * here has a reduced-motion final state at the bottom of the file.
+ */
+
+.canvas-reveal {
+	animation: canvas-reveal var(--canvas-duration-reveal) var(--canvas-ease) both;
+}
+
+// Stagger: each section enters about 70ms after the one above it. The delay is
+// derived from the reveal token so no duration literal escapes the token layer.
+.canvas-reveal:nth-child(1) {
+	animation-delay: calc(var(--canvas-duration-reveal) * 0);
+}
+
+.canvas-reveal:nth-child(2) {
+	animation-delay: calc(var(--canvas-duration-reveal) * 0.175);
+}
+
+.canvas-reveal:nth-child(3) {
+	animation-delay: calc(var(--canvas-duration-reveal) * 0.35);
+}
+
+.canvas-reveal:nth-child(4) {
+	animation-delay: calc(var(--canvas-duration-reveal) * 0.525);
+}
+
+.canvas-reveal:nth-child(5) {
+	animation-delay: calc(var(--canvas-duration-reveal) * 0.7);
+}
+
+// Cap longer pages at the final stagger step so later sections never start
+// ahead of the first five.
+.canvas-reveal:nth-child(n + 6) {
+	animation-delay: calc(var(--canvas-duration-reveal) * 0.7);
+}
+
+@keyframes canvas-reveal {
+
+	from {
+		opacity: 0;
+		filter: blur(6px);
+		transform: translateY(8px);
+	}
+
+	to {
+		opacity: 1;
+		filter: blur(0);
+		transform: translateY(0);
+	}
+}
+
+// Shaped loading skeleton: a shimmer across a neutral block sized like the
+// content it stands in for, never a spinner in the middle of an empty panel.
+.canvas-skeleton {
+	position: relative;
+	overflow: hidden;
+	background: var(--canvas-neutral-tint);
+	border-radius: var(--canvas-radius-sm);
+}
+
+.canvas-skeleton::after {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--canvas-surface) 60%, transparent), transparent);
+	animation: canvas-shimmer var(--canvas-duration-shimmer) var(--canvas-ease-snap) infinite;
+	content: "";
+}
+
+@keyframes canvas-shimmer {
+
+	from {
+		transform: translateX(-100%);
+	}
+
+	to {
+		transform: translateX(100%);
+	}
+}
+
+.canvas-loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 400px;
+	gap: var(--canvas-space-md);
+	color: var(--canvas-ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.canvas-reveal,
+	.canvas-skeleton::after {
+		animation: none;
+	}
+
+	.canvas-reveal {
+		opacity: 1;
+		filter: none;
+		transform: none;
+	}
+}

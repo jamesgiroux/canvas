@@ -1,5 +1,3 @@
-@use "../tokens" as *;
-
 /**
  * Error Boundary Styles
  */
@@ -21,15 +19,15 @@
 	font-size: 48px;
 	width: 48px;
 	height: 48px;
-	color: #d63638;
+	color: var(--canvas-error);
 	margin-bottom: 16px;
 }
 
 .canvas-error-boundary__details {
 	margin: 16px 0;
 	padding: 12px;
-	background: #f0f0f1;
-	border-radius: 4px;
+	background: var(--canvas-surface-code);
+	border-radius: var(--canvas-radius-sm);
 	text-align: left;
 	font-size: 12px;
 
@@ -42,9 +40,9 @@
 	pre {
 		margin: 8px 0 0 0;
 		padding: 8px;
-		background: #fff;
-		border: 1px solid #dcdcde;
-		border-radius: 2px;
+		background: var(--canvas-surface);
+		border: 1px solid var(--canvas-border);
+		border-radius: var(--canvas-radius-sm);
 		overflow-x: auto;
 		font-size: 11px;
 		white-space: pre-wrap;

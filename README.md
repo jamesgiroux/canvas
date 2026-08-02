@@ -1,6 +1,6 @@
 # Canvas
 
-A starter framework for building a **wp-admin area as a React single-page app** — a dark sidebar with a content area, using `@wordpress/components` and WordPress design language, talking to PHP over the REST API. It targets **WordPress 7.0** and **PHP 8.3**.
+A starter framework for building a **wp-admin area as a React single-page app**: a dark sidebar with a content area, using `@wordpress/components` and WordPress design language, talking to PHP over the REST API. It targets **WordPress 7.0** and **PHP 8.3**.
 
 Canvas is a *scaffold*, not a finished plugin. You copy it, run one script to rebrand every identifier to your own plugin, and build from there.
 
@@ -10,13 +10,13 @@ Canvas is a *scaffold*, not a finished plugin. You copy it, run one script to re
 
 The core of Canvas is the admin UI and the plumbing that serves it:
 
-- A **full-page React admin** — sidebar navigation + content area, rendered into a single root element, routed by the `page` query arg and the URL hash.
-- **Single-responsibility PHP** — a thin `Plugin` loader wires focused components (admin menu, asset enqueue, REST router, migration runner), each implementing a `Registrable` contract and owning its own hooks.
+- A **full-page React admin**: sidebar navigation + content area, rendered into a single root element, routed by the `page` query arg and the URL hash.
+- **Single-responsibility PHP**: a thin `Plugin` loader wires focused components (admin menu, asset enqueue, REST router, migration runner), each implementing a `Registrable` contract and owning its own hooks.
 - A **REST base controller** with capability checks, pagination, and sanitization helpers.
 - **Settings** persisted via the Options API, with one class as the single source of truth for keys, defaults, schema, and sanitization.
-- **Tooling & guardrails** — PHPCS, PHPStan, PHPUnit, `wp-env`, GitHub Actions CI, Dependabot, and a one-command initialization script.
+- **Tooling & guardrails**: PHPCS, PHPStan, PHPUnit, `wp-env`, GitHub Actions CI, Dependabot, and a one-command initialization script.
 
-It also ships **one example domain object** — `Item` — to demonstrate the full stack: a custom database table, a cached/multisite-aware model, REST CRUD, a list page, and a dashboard. This is a deliberate "we've set you up with a correct data layer" carve-out. **`Item`, its controller, its page, and the `canvas_items` table are meant to be replaced wholesale with your own domain.** If you only need a settings panel, delete them.
+It also ships **one example domain object**, `Item`, to demonstrate the full stack: a custom database table, a cached/multisite-aware model, REST CRUD, a list page, and a dashboard. This is a deliberate "we've set you up with a correct data layer" carve-out. **`Item`, its controller, its page, and the `canvas_items` table are meant to be replaced wholesale with your own domain.** If you only need a settings panel, delete them.
 
 ### Requirements
 
@@ -120,12 +120,62 @@ includes/
 └── Database/                    # Migrator, Migration_Runner, migrations/
 src/
 ├── index.jsx                    # Entry point
-├── components/{layout,primitives}/
-├── pages/                       # Dashboard, Items, Settings
+├── components/{editorial,layout,primitives}/
+├── pages/                       # Dashboard, Items, Settings, StyleGuide
 ├── store/                       # @wordpress/data stores
-├── hooks/ · constants/ · styles/
+├── hooks/ · constants/
+└── styles/
+    ├── _tokens.scss             # Token partial
+    ├── components/
+    │   ├── _badge.scss
+    │   ├── _controls.scss
+    │   ├── _data.scss
+    │   ├── _error-boundary.scss
+    │   ├── _motion.scss
+    │   ├── _surfaces.scss
+    │   └── _typography.scss
+    └── main.scss                # Sass entry point, not a partial
 tests/                           # PHPUnit (Unit + Integration)
 ```
+
+## Design system
+
+The machine-readable token registry at `tokens.json` is the source of truth.
+`src/styles/_tokens.scss` mirrors it as scoped runtime custom properties, and
+the seven partials under `src/styles/components/` consume those properties.
+Change the JSON and Sass declarations together rather than hardcoding a value
+inside a component partial.
+
+Run `npm run test:tokens` after changing the design layer. The guard checks
+token names and values in both directions, requires a role for documented color
+tokens, protects WordPress's seven re-anchored variables, rejects literal motion
+durations, and requires a reduced-motion collapse in every partial that
+animates.
+
+The exported primitives are available from `src/components/primitives`. From a
+page under `src/pages`, import them with:
+
+```jsx
+import { Badge, CardHelp, DataTable, MetricCard, PageHeader, Tabs } from '../components/primitives';
+```
+
+| Primitive | Use | One-line example |
+|-----------|-----|------------------|
+| `PageHeader` | Compose a page eyebrow, title, description, and actions. | `<PageHeader eyebrow="Overview" title="Weekly report" accentTitle />` |
+| `MetricCard` | Show a KPI value and optional trend; use `MetricCard.Grid` for groups. | `<MetricCard label="Published" value={ 24 } trend="up" trendValue="+12%" />` |
+| `DataTable` | Apply the shared accessible table contract to feature-owned rows. | `<DataTable label="Reports">{ tableSections }</DataTable>` |
+| `Badge` | Show a labelled default, success, warning, error, or info state. | `<Badge variant="success">Active</Badge>` |
+| `Tabs` | Render keyboard-operable segmented tabs. | `<Tabs tabs={ tabs } label="Report sections" />` |
+| `CardHelp` | Put explanatory card copy in a labelled tooltip. | `<CardHelp text="How this value is calculated." label="About published posts" />` |
+
+When `WP_DEBUG` is true, inspect the live kit inside wp-admin at
+`wp-admin/admin.php?page=canvas-style-guide`. It renders the actual tokens,
+primitives, interaction states, focus treatment, depth, and motion against the
+loaded WordPress styles.
+
+See [`DESIGN.md`](DESIGN.md) for the fill-in house rules, type roles, color and
+data discipline, accessibility evidence, complete token vocabulary, and
+anti-references.
 
 ---
 
@@ -137,7 +187,7 @@ The fastest way to learn the patterns is to copy the `Item` example and adapt it
 
 A new page touches four spots (all `'canvas'` references become your slug after init):
 
-1. **Create the component** — `src/pages/Reports.jsx`:
+1. **Create the component**: `src/pages/Reports.jsx`:
    ```jsx
    import { __ } from '@wordpress/i18n';
 
@@ -151,15 +201,15 @@ A new page touches four spots (all `'canvas'` references become your slug after 
        );
    }
    ```
-2. **Register the menu page** in `Admin\Menu::register_pages()` — add to the `$subpages` array:
+2. **Register the menu page** in `Admin\Menu::register_pages()`: add to the `$subpages` array:
    ```php
    array( $slug . '-reports', __( 'Reports', 'canvas' ), self::VIEW_CAP ),
    ```
-3. **Allow assets to load there** — add the screen to `Admin\Assets::is_plugin_screen()`:
+3. **Allow assets to load there**: add the screen to `Admin\Assets::is_plugin_screen()`:
    ```php
    $slug . '_page_' . $slug . '-reports',
    ```
-4. **Route and link it** — add a branch in `AppShell.jsx`'s `renderContent()` and a nav item in `Sidebar.jsx`.
+4. **Route and link it**: add a branch in `AppShell.jsx`'s `renderContent()` and a nav item in `Sidebar.jsx`.
 
 ### Add a setting
 
@@ -251,7 +301,7 @@ Create `includes/Database/migrations/001-add-index.php` defining a `canvas_migra
 
 ## The initialization script
 
-`bin/canvas-init.py` is a standalone Python CLI (Python 3.8+) — it needs neither WordPress, Composer, nor npm, so it runs before anything is installed. It rewrites every Canvas identifier across the codebase, renames `canvas.php` → `<slug>.php`, and then **deletes itself**.
+`bin/canvas-init.py` is a standalone Python CLI (Python 3.8+). It needs neither WordPress, Composer, nor npm, so it runs before anything is installed. It rewrites every Canvas identifier across the codebase, renames `canvas.php` → `<slug>.php`, and then **deletes itself**.
 
 ```bash
 python3 bin/canvas-init.py                                   # interactive prompts
@@ -329,8 +379,8 @@ Added to the administrator role on activation; routes and pages gate on these (n
 
 ### Security, multisite & uninstall
 
-- **Security** — column allowlist on dynamic SQL, `$wpdb->prepare()` throughout, capability checks on every route, and the controller's `sanitize_*()` helpers.
-- **Multisite** — every query is scoped by `blog_id`; activation and uninstall iterate all sites.
+- **Security**: column allowlist on dynamic SQL, `$wpdb->prepare()` throughout, capability checks on every route, and the controller's `sanitize_*()` helpers.
+- **Multisite**: every query is scoped by `blog_id`; activation and uninstall iterate all sites.
 - **Uninstall** (`uninstall.php`) drops tables, options, and capabilities unless `preserve_data_on_uninstall` is set. It is deliberately self-contained (WordPress loads it in isolation), so keep its literal names in sync with `Settings`.
 
 ### Continuous integration

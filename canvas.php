@@ -14,7 +14,7 @@
  * Plugin Name: Canvas
  * Plugin URI:  https://example.com/canvas
  * Description: A starter framework for WordPress plugins with React admin UI.
- * Version:     1.0.0
+ * Version:     1.1.0
  * Author:      Your Name
  * Author URI:  https://example.com
  * Text Domain: canvas
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin version. Update this when releasing new versions.
  */
-define( 'CANVAS_VERSION', '1.0.0' );
+define( 'CANVAS_VERSION', '1.1.0' );
 
 /**
  * Database schema version. Increment when schema changes require migrations.

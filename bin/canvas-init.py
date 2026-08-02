@@ -26,6 +26,7 @@ Usage (interactive):
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -36,9 +37,9 @@ SKIP_DIRS = {".git", "node_modules", "vendor", "build", "languages"}
 # Only rewrite files with these extensions (everything that can contain a
 # Canvas identifier in this scaffold).
 EXTENSIONS = {
-    ".php", ".js", ".jsx", ".ts", ".tsx", ".json", ".scss", ".sass", ".css",
+    ".php", ".js", ".mjs", ".jsx", ".ts", ".tsx", ".json", ".scss", ".sass", ".css",
     ".md", ".txt", ".xml", ".dist", ".neon", ".yml", ".yaml", ".html",
-    ".pot", ".po",
+    ".pot", ".po", ".py",
 }
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -137,17 +138,44 @@ def apply(content: str, regex: "re.Pattern[str]", replacements: dict) -> str:
     return regex.sub(lambda m: replacements[m.group(0)], content)
 
 
-def collect_files() -> list[Path]:
-    """Files eligible for rewriting (excluding skipped dirs and this script)."""
-    files = []
-    for path in ROOT.rglob("*"):
-        if any(part in SKIP_DIRS for part in path.relative_to(ROOT).parts):
-            continue
-        if not path.is_file() or path.resolve() == SELF:
-            continue
-        if path.suffix.lower() in EXTENSIONS:
-            files.append(path)
-    return files
+def collect_paths() -> list[Path]:
+    """Scaffold-owned paths, pruning skipped directories before traversal."""
+    paths = []
+    for directory, dirnames, filenames in os.walk(ROOT):
+        dirnames[:] = [name for name in dirnames if name not in SKIP_DIRS]
+        parent = Path(directory)
+        paths.extend(parent / name for name in dirnames)
+        paths.extend(
+            path
+            for name in filenames
+            if (path := parent / name) != SELF
+        )
+    return paths
+
+
+def collect_files(paths: list[Path]) -> list[Path]:
+    """Files eligible for content rewriting."""
+    return [
+        path
+        for path in paths
+        if path.is_file() and path.suffix.lower() in EXTENSIONS
+    ]
+
+
+def rename_paths(
+    paths: list[Path], regex: "re.Pattern[str]", replacements: dict
+) -> None:
+    """Rename scaffold-owned files and directories from the deepest path up."""
+    paths = sorted(
+        paths,
+        key=lambda path: len(path.relative_to(ROOT).parts),
+        reverse=True,
+    )
+
+    for path in paths:
+        renamed = apply(path.name, regex, replacements)
+        if renamed != path.name:
+            path.rename(path.with_name(renamed))
 
 
 def gather_values(args: argparse.Namespace, interactive: bool) -> dict:
@@ -228,8 +256,9 @@ def main() -> int:
     # Longest keys first so the regex prefers the most specific token at each spot.
     regex = re.compile("|".join(re.escape(k) for k in sorted(replacements, key=len, reverse=True)))
 
+    paths = collect_paths()
     changed = 0
-    for path in collect_files():
+    for path in collect_files(paths):
         try:
             original = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
@@ -239,10 +268,7 @@ def main() -> int:
             path.write_text(updated, encoding="utf-8")
             changed += 1
 
-    main_old = ROOT / "canvas.php"
-    main_new = ROOT / f"{values['slug']}.php"
-    if main_old.is_file() and main_old != main_new:
-        main_old.rename(main_new)
+    rename_paths(paths, regex, replacements)
 
     print(f"\n  Rewrote {changed} file(s); main file is now {values['slug']}.php")
 

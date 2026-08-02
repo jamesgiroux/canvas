@@ -6,7 +6,8 @@
  * @package
  */
 
-// API constants.
+// API constants. (There is no JS design-constants module: design tokens live in
+// the --canvas-* CSS custom properties, one token source, no shadow palette.)
 export {
 	API_NAMESPACE,
 	API_ENDPOINTS,
@@ -14,16 +15,3 @@ export {
 	API_DEFAULTS,
 	getApiPath,
 } from './api';
-
-// Design system constants.
-export {
-	SPACING,
-	COLORS,
-	BADGE_VARIANTS,
-	TYPOGRAPHY,
-	BREAKPOINTS,
-	SHADOWS,
-	RADIUS,
-	Z_INDEX,
-	ANIMATION,
-} from './design';

@@ -1,0 +1,61 @@
+/**
+ * Typography
+ *
+ * The editorial type system: a disciplined display grotesk broken, once per
+ * hero, by a serif italic. Mono carries eyebrows, micro-labels, and every
+ * number that can change.
+ */
+
+.canvas-page-title,
+.canvas-card-title {
+	font-family: var(--canvas-font-display);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	color: var(--canvas-ink);
+}
+
+.canvas-page-title {
+	max-width: 19ch;
+	font-size: 2.15rem;
+	line-height: 1.05;
+	letter-spacing: -0.03em;
+}
+
+// The one serif-italic accent word per hero. Never more than one, and never on
+// a card title inside a list.
+.canvas-page-title em {
+	font-family: var(--canvas-font-serif);
+	font-style: italic;
+	font-weight: 500;
+	letter-spacing: -0.01em;
+}
+
+.canvas-card-title {
+	font-size: 1.05rem;
+}
+
+.canvas-page-description {
+	max-width: 64ch;
+	font-size: 14px;
+	line-height: 1.5;
+	color: var(--canvas-ink-2);
+}
+
+// Mono eyebrow: the small uppercase label above a title or section.
+.canvas-editorial-eyebrow {
+	display: block;
+	margin-bottom: var(--canvas-space-xs);
+	font-family: var(--canvas-font-mono);
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--canvas-ink-3);
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+}
+
+// Every number, everywhere. Numbers must not reflow when they animate.
+.canvas-u-tabular {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum";
+}

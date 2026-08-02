@@ -9,6 +9,8 @@
 
 import { Card, CardBody, Icon, Spinner } from '@wordpress/components';
 
+import useCountUp, { formatCountUpValue } from './useCountUp';
+
 /**
  * MetricCard component.
  *
@@ -33,6 +35,8 @@ export default function MetricCard( {
 	loading = false,
 	className = '',
 } ) {
+	const animated = useCountUp( value );
+	const display = formatCountUpValue( value, animated );
 	const classes = [
 		'canvas-metric-card',
 		`canvas-metric-card--${ variant }`,
@@ -80,8 +84,8 @@ export default function MetricCard( {
 							<Spinner />
 						</div>
 					) : (
-						<span className="canvas-metric-card__value">
-							{ value }
+						<span className="canvas-metric-card__value canvas-u-tabular">
+							{ display }
 						</span>
 					) }
 
@@ -90,7 +94,7 @@ export default function MetricCard( {
 							className={ `canvas-metric-card__trend ${ getTrendClass() }` }
 						>
 							<Icon icon={ getTrendIcon() } size={ 16 } />
-							<span>{ trendValue }</span>
+							<span className="canvas-u-tabular">{ trendValue }</span>
 						</div>
 					) }
 				</div>
@@ -108,15 +112,13 @@ export default function MetricCard( {
  * @return {JSX.Element} The metric grid component.
  */
 MetricCard.Grid = function MetricGrid( { children, columns = 4 } ) {
+	const style =
+		4 === columns
+			? undefined
+			: { '--canvas-metric-columns': `repeat(${ columns }, 1fr)` };
+
 	return (
-		<div
-			className="canvas-metric-grid"
-			style={ {
-				display: 'grid',
-				gridTemplateColumns: `repeat(${ columns }, 1fr)`,
-				gap: '16px',
-			} }
-		>
+		<div className="canvas-metric-grid" style={ style }>
 			{ children }
 		</div>
 	);

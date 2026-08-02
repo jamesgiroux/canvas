@@ -1,0 +1,345 @@
+/**
+ * Editorial control treatments for @wordpress/components and native fields.
+ */
+
+.canvas-page-content .components-form-token-field__input-container {
+	border-color: var(--canvas-hair);
+	border-radius: var(--canvas-radius-sm);
+	box-shadow: var(--canvas-shadow);
+}
+
+.canvas-page-content .components-select-control__input {
+	background: var(--canvas-surface);
+	color: var(--canvas-ink-2);
+	font-size: 12.5px;
+	font-weight: 500;
+}
+
+// The house select uses CustomSelectControl so both trigger and listbox chrome
+// can share the same treatment. Its generated wrappers have no stable BEM
+// hooks, so styling hangs off the `.canvas-select` wrapper and element roles.
+.canvas-select button {
+	width: auto;
+	min-width: 148px;
+	min-height: 36px;
+	gap: 8px;
+	justify-content: space-between;
+	padding-inline: 15px 13px;
+	border: 1px solid var(--canvas-hair);
+	border-radius: var(--canvas-radius-sm);
+	background: var(--canvas-surface);
+	box-shadow: var(--canvas-shadow);
+	color: var(--canvas-ink-2);
+	font-size: 12.5px;
+	font-weight: 500;
+	transition:
+		border-color var(--canvas-duration-hover) var(--canvas-ease-out),
+		box-shadow var(--canvas-duration-hover) var(--canvas-ease),
+		background var(--canvas-duration-hover) var(--canvas-ease-out);
+}
+
+.canvas-select button svg {
+	color: var(--canvas-ink-3);
+	transition: color var(--canvas-duration-hover) var(--canvas-ease-out);
+}
+
+.canvas-select button:hover {
+	border-color: var(--canvas-hair-strong);
+	background: var(--canvas-surface-tint);
+	color: var(--canvas-ink);
+}
+
+.canvas-select button:hover svg {
+	color: var(--canvas-ink-2);
+}
+
+.canvas-select--disabled button,
+.canvas-select button:disabled,
+.canvas-select button[aria-disabled="true"] {
+	cursor: not-allowed;
+	opacity: 0.54;
+	transform: none;
+}
+
+.canvas-select--disabled button:hover,
+.canvas-select button:disabled:hover,
+.canvas-select button[aria-disabled="true"]:hover {
+	border-color: var(--canvas-hair);
+	background: var(--canvas-surface);
+	color: var(--canvas-ink-2);
+}
+
+.canvas-select--error button {
+	border-color: var(--canvas-error);
+	background: var(--canvas-error-tint);
+	color: var(--canvas-error);
+}
+
+.canvas-select--error button:focus,
+.canvas-select--error button:focus-visible,
+.canvas-select--error button[aria-expanded="true"] {
+	border-color: var(--canvas-error) !important;
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--canvas-error) 28%, transparent) !important;
+}
+
+// Open reads as the live state. These overrides beat generated component
+// styles that load after the plugin stylesheet.
+.canvas-select button:focus,
+.canvas-select button:focus-visible,
+.canvas-select button[aria-expanded="true"] {
+	border-color: var(--canvas-accent-line) !important;
+	box-shadow: 0 0 0 2px var(--canvas-focus-ring) !important;
+	color: var(--canvas-ink);
+	outline: none;
+}
+
+.canvas-select button[aria-expanded="true"] svg,
+.canvas-select button:focus svg {
+	color: var(--canvas-accent);
+}
+
+// CustomSelectControl's trigger owns the chrome, so its InputBase backdrop and
+// container stay visually transparent.
+.canvas-select .components-input-control__backdrop {
+	display: none;
+}
+
+.canvas-select .components-input-control__container {
+	background: transparent;
+}
+
+.canvas-select [role="listbox"] {
+	min-width: 180px;
+	margin-top: 4px;
+	padding: 4px;
+	border: 1px solid var(--canvas-hair);
+	border-radius: var(--canvas-radius-sm);
+	background: var(--canvas-surface);
+	box-shadow: var(--canvas-shadow-hi);
+}
+
+.canvas-select .components-custom-select-control__item {
+	padding: 7px 10px;
+	border-radius: calc(var(--canvas-radius-sm) - 2px);
+	color: var(--canvas-ink-2);
+	font-size: 12.5px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.canvas-select .components-custom-select-control__item:hover,
+.canvas-select .components-custom-select-control__item[data-active-item] {
+	background: var(--canvas-surface-tint);
+	color: var(--canvas-ink);
+}
+
+.canvas-select .components-custom-select-control__item[aria-selected="true"] {
+	background: var(--canvas-accent-tint);
+	color: var(--canvas-accent-deep);
+}
+
+.canvas-page-content .components-form-token-field__token {
+	border-radius: var(--canvas-radius-sm);
+	background: var(--canvas-surface-tint);
+	color: var(--canvas-ink);
+}
+
+.canvas-page-content .components-form-token-field__token-text {
+	font-size: 12.5px;
+}
+
+// Editorial radius belongs only to the standard button variants; tab, icon,
+// and toggle buttons retain their own shapes.
+.canvas-page-content .components-button.is-primary,
+.canvas-page-content .components-button.is-secondary,
+.canvas-page-content .components-button.is-tertiary {
+	border-radius: var(--canvas-radius-sm);
+}
+
+.canvas-page-content .components-button:disabled,
+.canvas-page-content .components-button[aria-disabled="true"],
+.canvas-page-content button:disabled,
+.canvas-page-content button[aria-disabled="true"] {
+	cursor: not-allowed;
+	opacity: 0.54;
+	transform: none;
+}
+
+.canvas-page-content .components-button.is-busy,
+.canvas-page-content .components-button[aria-busy="true"] {
+	cursor: progress;
+}
+
+.canvas-page-content .components-button.is-primary:not(:disabled):not([aria-disabled="true"]):hover {
+	border-color: var(--canvas-accent-hover);
+	background: var(--canvas-accent-hover);
+}
+
+.canvas-page-content .components-button.is-secondary:not(:disabled):not([aria-disabled="true"]):hover,
+.canvas-page-content .components-button.is-tertiary:not(:disabled):not([aria-disabled="true"]):hover {
+	border-color: var(--canvas-hair-strong);
+	color: var(--canvas-accent-deep);
+}
+
+.canvas-page-content input[type="text"],
+.canvas-page-content input[type="url"],
+.canvas-page-content input[type="email"],
+.canvas-page-content input[type="number"],
+.canvas-page-content textarea,
+.canvas-page-content select,
+.canvas-page-content .components-text-control__input,
+.canvas-page-content .components-textarea-control__input,
+.canvas-page-content .components-select-control__input {
+	border-color: var(--canvas-hair);
+	border-radius: var(--canvas-radius-sm);
+	box-shadow: none;
+	transition:
+		border-color var(--canvas-duration-hover) var(--canvas-ease-out),
+		box-shadow var(--canvas-duration-hover) var(--canvas-ease);
+}
+
+.canvas-page-content input[type="text"]:not(:disabled):hover,
+.canvas-page-content input[type="url"]:not(:disabled):hover,
+.canvas-page-content input[type="email"]:not(:disabled):hover,
+.canvas-page-content input[type="number"]:not(:disabled):hover,
+.canvas-page-content textarea:not(:disabled):hover,
+.canvas-page-content select:not(:disabled):hover,
+.canvas-page-content .components-text-control__input:not(:disabled):hover,
+.canvas-page-content .components-textarea-control__input:not(:disabled):hover,
+.canvas-page-content .components-select-control__input:not(:disabled):hover {
+	border-color: var(--canvas-hair-strong);
+}
+
+.canvas-page-content input[type="text"]:focus,
+.canvas-page-content input[type="text"]:focus-visible,
+.canvas-page-content input[type="url"]:focus,
+.canvas-page-content input[type="url"]:focus-visible,
+.canvas-page-content input[type="email"]:focus,
+.canvas-page-content input[type="email"]:focus-visible,
+.canvas-page-content input[type="number"]:focus,
+.canvas-page-content input[type="number"]:focus-visible,
+.canvas-page-content textarea:focus,
+.canvas-page-content textarea:focus-visible,
+.canvas-page-content select:focus,
+.canvas-page-content select:focus-visible,
+.canvas-page-content .components-text-control__input:focus,
+.canvas-page-content .components-text-control__input:focus-visible,
+.canvas-page-content .components-textarea-control__input:focus,
+.canvas-page-content .components-textarea-control__input:focus-visible,
+.canvas-page-content .components-select-control__input:focus,
+.canvas-page-content .components-select-control__input:focus-visible {
+	border-color: var(--canvas-accent) !important;
+	box-shadow: 0 0 0 2px var(--canvas-focus-ring) !important;
+	outline: none !important;
+}
+
+.canvas-page-content input[aria-invalid="true"],
+.canvas-page-content textarea[aria-invalid="true"],
+.canvas-page-content select[aria-invalid="true"],
+.canvas-page-content .components-text-control__input[aria-invalid="true"],
+.canvas-page-content .components-textarea-control__input[aria-invalid="true"],
+.canvas-page-content .components-select-control__input[aria-invalid="true"] {
+	border-color: var(--canvas-error);
+}
+
+// Press: 120ms scale on every button and chip. Hover is a 160ms shadow-ring,
+// border, or tint change, never a translate.
+.canvas-page-content .components-button:not(:disabled):active {
+	transform: scale(0.97);
+	transition: transform var(--canvas-duration-press) var(--canvas-ease-snap);
+}
+
+.canvas-page-content .components-button:focus-visible {
+	outline: 2px solid var(--canvas-focus-ring);
+	outline-offset: 1px;
+}
+
+// Filter toolbar
+.canvas-filters {
+	display: flex;
+	gap: var(--canvas-space-md);
+	margin-bottom: var(--canvas-space-lg);
+
+	.components-search-control {
+		max-width: 400px;
+	}
+
+	.components-select-control {
+		min-width: 150px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.canvas-select button,
+	.canvas-select button svg,
+	.canvas-page-content input[type="text"],
+	.canvas-page-content input[type="url"],
+	.canvas-page-content input[type="email"],
+	.canvas-page-content input[type="number"],
+	.canvas-page-content textarea,
+	.canvas-page-content select,
+	.canvas-page-content .components-text-control__input,
+	.canvas-page-content .components-textarea-control__input,
+	.canvas-page-content .components-select-control__input {
+		transition: none;
+	}
+
+	.canvas-page-content .components-button:not(:disabled):active {
+		transform: none;
+		transition: none;
+	}
+}
+
+// Tabs: a segmented control on a sunken track, with the selection raised.
+.canvas-tabs__list {
+	display: inline-flex;
+	gap: var(--canvas-space-2xs);
+	padding: var(--canvas-space-2xs);
+	background: var(--canvas-surface-tint);
+	border-radius: var(--canvas-radius-sm);
+}
+
+.canvas-tabs__tab.components-button {
+	height: 32px;
+	padding: 0 var(--canvas-space-sm);
+	border-radius: var(--canvas-radius-sm);
+	color: var(--canvas-ink-2);
+}
+
+.canvas-tabs__tab.components-button.is-active {
+	background: var(--canvas-surface);
+	box-shadow: var(--canvas-shadow-control);
+	color: var(--canvas-ink);
+}
+
+.canvas-tabs__panel {
+	padding-top: var(--canvas-space-md);
+}
+
+.canvas-tabs__panel:focus-visible {
+	outline: 2px solid var(--canvas-focus-ring);
+	outline-offset: 2px;
+}
+
+// The quiet "what is this card?" affordance. Explainer copy belongs in the
+// tooltip; honesty captions that qualify a figure stay visible beside it.
+.canvas-card-help {
+	display: inline-flex;
+	align-items: center;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--canvas-ink-3);
+	cursor: pointer;
+}
+
+.canvas-card-help:hover {
+	color: var(--canvas-ink-2);
+}
+
+.canvas-card-help:focus-visible {
+	outline: 2px solid var(--canvas-focus-ring);
+	outline-offset: 2px;
+	border-radius: var(--canvas-radius-round);
+}

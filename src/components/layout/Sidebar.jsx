@@ -48,7 +48,10 @@ export default function Sidebar( { currentPage, onNavigate } ) {
 		},
 	];
 
-	// System section navigation items.
+	// System section navigation items. The style guide is appended only when the
+	// PHP side registered it, which it does under WP_DEBUG: the admin takeover
+	// hides wp-admin's own menu, so the plugin sidebar is the only place the
+	// route can surface.
 	const systemItems = [
 		{
 			id: 'canvas-settings',
@@ -56,6 +59,14 @@ export default function Sidebar( { currentPage, onNavigate } ) {
 			icon: 'admin-settings',
 		},
 	];
+
+	if ( window.canvasData?.isDebug ) {
+		systemItems.push( {
+			id: 'canvas-style-guide',
+			label: __( 'Style Guide', 'canvas' ),
+			icon: 'art',
+		} );
+	}
 
 	/**
 	 * Handle navigation click.

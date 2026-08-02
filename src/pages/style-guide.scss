@@ -1,0 +1,114 @@
+/**
+ * Style Guide
+ *
+ * Layout for the development-only kit audit surface. These rules arrange live
+ * kit specimens so a plugin author can compare tokens and states without
+ * introducing a second component vocabulary.
+ *
+ * This stylesheet is imported by StyleGuide.jsx rather than by main.scss, so
+ * webpack emits it as part of the lazy style-guide chunk. Production never
+ * loads it, which matters because the route is registered only under WP_DEBUG:
+ * anything reachable only there has no business in the shipped bundle.
+ */
+
+.canvas-style-guide__specimens,
+.canvas-style-guide__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--canvas-sidebar-w) - var(--canvas-space-2xl))), 1fr));
+	gap: var(--canvas-space-md);
+}
+
+.canvas-style-guide__specimen,
+.canvas-style-guide__swatch,
+.canvas-style-guide__badge-set,
+.canvas-style-guide__labelled-control {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: var(--canvas-space-xs);
+}
+
+.canvas-style-guide__specimen p,
+.canvas-style-guide__shadow-card p {
+	margin-block: 0;
+}
+
+.canvas-style-guide__chip {
+	display: block;
+	width: 100%;
+	height: calc(var(--canvas-control-h) + var(--canvas-space-sm));
+	border-radius: var(--canvas-radius-sm);
+	box-shadow: inset 0 0 0 1px var(--canvas-hair);
+}
+
+.canvas-style-guide__badge-set {
+	justify-content: space-between;
+}
+
+.canvas-style-guide__controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--canvas-space-xl);
+	margin-top: var(--canvas-space-md);
+}
+
+.canvas-style-guide__table-wrap {
+	overflow-x: auto;
+}
+
+.canvas-style-guide__two-up {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--canvas-space-lg);
+}
+
+.canvas-style-guide__shadow-card {
+	min-height: calc(var(--canvas-control-h) * 3);
+}
+
+.canvas-style-guide__skeleton {
+	height: calc(var(--canvas-control-h) * 2);
+	margin-block: var(--canvas-space-md);
+}
+
+.canvas-style-guide__section-heading {
+	display: flex;
+	align-items: center;
+	gap: var(--canvas-space-xs);
+}
+
+.canvas-style-guide__section-heading h2 {
+	margin-right: 0;
+}
+
+// Pinned control states keep the contract reviewable without browser devtools.
+.canvas-page-content .canvas-style-guide__button--hover.components-button.is-primary {
+	border-color: var(--canvas-accent-hover);
+	background: var(--canvas-accent-hover);
+}
+
+.canvas-page-content .canvas-style-guide__button--focus.components-button,
+.canvas-page-content .canvas-style-guide__focus-target.components-button {
+	border-color: var(--canvas-accent-line);
+	box-shadow: 0 0 0 2px var(--canvas-focus-ring);
+	outline: none;
+}
+
+.canvas-page-content .canvas-style-guide__button--active.components-button {
+	transform: scale(0.97);
+}
+
+@media (max-width: 782px) {
+
+	.canvas-style-guide__two-up {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.canvas-page-content .canvas-style-guide__button--active.components-button {
+		transform: none;
+	}
+}

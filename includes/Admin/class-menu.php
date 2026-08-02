@@ -73,6 +73,19 @@ final class Menu implements Registrable {
 		foreach ( $subpages as [ $page_slug, $title, $capability ] ) {
 			add_submenu_page( $slug, $title, $title, $capability, $page_slug, array( $this, 'render' ) );
 		}
+
+		// The kit's style guide. Development only: it exists to make design
+		// drift visible while building, and has no place on a production site.
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			add_submenu_page(
+				$slug,
+				__( 'Style Guide', 'canvas' ),
+				__( 'Style Guide', 'canvas' ),
+				self::VIEW_CAP,
+				$slug . '-style-guide',
+				array( $this, 'render' )
+			);
+		}
 	}
 
 	/**

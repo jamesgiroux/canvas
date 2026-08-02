@@ -1,0 +1,134 @@
+/**
+ * Surfaces
+ *
+ * Cards, warm sunken zones, and hairline dividers. Depth is tinted and layered,
+ * never a pure-black shadow, and a card hovers by growing its shadow ring
+ * rather than by moving.
+ */
+
+.canvas-card {
+	padding: var(--canvas-space-lg);
+	background: var(--canvas-surface);
+	border-radius: var(--canvas-radius);
+	box-shadow: var(--canvas-shadow-card);
+	transition: box-shadow var(--canvas-duration-hover) var(--canvas-ease-out);
+}
+
+.canvas-card:hover {
+	box-shadow: var(--canvas-shadow-card-hover);
+}
+
+.canvas-card--feature {
+	border-radius: var(--canvas-radius-lg);
+	box-shadow: var(--canvas-shadow-hi);
+}
+
+// Warm sunken zone: grouped and inset areas read as a quiet rhythm rather than
+// another box.
+.canvas-sunken {
+	padding: var(--canvas-space-md);
+	background: var(--canvas-surface-tint);
+	border-radius: var(--canvas-radius-sm);
+}
+
+.canvas-hair {
+	border: 0;
+	border-top: 1px solid var(--canvas-hair);
+}
+
+.canvas-empty-state {
+	padding: 60px var(--canvas-space-2xl);
+	background: var(--canvas-surface-tint);
+	border-radius: var(--canvas-radius);
+	text-align: center;
+
+	.dashicons {
+		width: 48px;
+		height: 48px;
+		margin-bottom: var(--canvas-space-md);
+		font-size: 48px;
+		color: var(--canvas-ink-3);
+	}
+
+	h3 {
+		margin: 0 0 var(--canvas-space-xs);
+		color: var(--canvas-ink);
+	}
+
+	p {
+		margin: 0 0 var(--canvas-space-md);
+		color: var(--canvas-ink-2);
+	}
+}
+
+// Legacy layout hooks retained for the scaffold's example pages. Field-specific
+// item typography stays with the consumer rather than the surface layer.
+.canvas-items-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+	gap: var(--canvas-space-lg);
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
+}
+
+.canvas-item-card {
+	box-shadow: var(--canvas-shadow-card);
+	transition: box-shadow var(--canvas-duration-hover) var(--canvas-ease-out);
+
+	&:hover {
+		box-shadow: var(--canvas-shadow-card-hover);
+	}
+
+	&__header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		margin-bottom: var(--canvas-space-xs);
+	}
+
+	&__actions {
+		display: flex;
+		gap: var(--canvas-space-xs);
+	}
+}
+
+.canvas-settings-sections {
+	display: grid;
+	gap: var(--canvas-space-lg);
+}
+
+.canvas-settings-card {
+	border: 1px solid var(--canvas-hair);
+	border-radius: var(--canvas-radius);
+	box-shadow: var(--canvas-shadow-card);
+
+	.components-card__header h2 {
+		margin: 0;
+	}
+
+	.components-card__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--canvas-space-lg);
+	}
+}
+
+.canvas-modal__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--canvas-space-xs);
+	margin-top: var(--canvas-space-lg);
+	padding-top: var(--canvas-space-md);
+	border-top: 1px solid var(--canvas-hair);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+	.canvas-card,
+	.canvas-item-card {
+		transition: none;
+	}
+}

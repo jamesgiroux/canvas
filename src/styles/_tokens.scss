@@ -1,26 +1,129 @@
-// ============================================================================
-// Design Tokens
-// ============================================================================
-// Shared Sass variables. Consume from any stylesheet with:
-//   @use '../tokens' as *;   (from components/)
-//   @use 'tokens' as *;      (from the styles root)
-//   (the bare @use line above must precede all other rules in the file)
+/**
+ * Atelier Canvas design tokens.
+ *
+ * Runtime CSS custom properties, not Sass variables: they carry through the DOM
+ * to whichever component references them, including body-level portals that
+ * @wordpress/components renders outside the app tree.
+ *
+ * Scoped to the plugin's own body and page roots rather than :root, so the
+ * surrounding wp-admin keeps its own values.
+ *
+ * Mirrored by tokens.json and guarded by tests/js/tokens.test.mjs. Adding a
+ * token here without adding it there fails the build.
+ */
 
-// Spacing scale (4px grid)
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
+body.toplevel_page_canvas,
+body[class*="_page_canvas"],
+.canvas-container,
+.canvas-page-content {
+	// Frame: the dark shell.
+	--canvas-bg-frame: #1e1e1e;
+	--canvas-frame-2: #2b2b2b;
+	--canvas-frame-line: rgba(255, 255, 255, 0.09);
+	--canvas-on-dark: #f0f0f1;
+	--canvas-on-dark-2: #a7aaad;
+	--canvas-on-accent: #fff;
 
-// Colors
-$color-primary: var(--wp-admin-theme-color, #007cba);
-$color-text: #1e1e1e;
-$color-text-secondary: #757575;
-$color-background: #f0f0f1;
-$color-border: #c3c4c7;
+	// Surfaces and ink.
+	--canvas-surface: #fff;
+	--canvas-surface-tint: #f7f7f5;
+	--canvas-surface-muted: #f6f7f7;
+	--canvas-surface-code: #f0f0f1;
+	--canvas-row-hover: #fcfcfb;
+	--canvas-ink: #1e1e1e;
+	--canvas-ink-2: #50575e;
+	--canvas-ink-3: #787c82;
 
-// Border radius
-$radius-sm: 2px;
-$radius-md: 4px;
-$radius-lg: 8px;
+	// Accent and structural lines.
+	--canvas-accent: #0675c4;
+	--canvas-accent-hover: #055d9c;
+	--canvas-accent-deep: #044474;
+	--canvas-accent-tint: #f0f6fb;
+	--canvas-accent-line: #c9e0f2;
+	--canvas-border: #dcdcde;
+	--canvas-border-strong: #c3c4c7;
+
+	// Data neutrals.
+	--canvas-data-1: #c7ccd1;
+	--canvas-data-2: #dfe3e7;
+	--canvas-data-3: #aeb6bf;
+	--canvas-neutral-tint: #f1f2f3;
+	--canvas-hair: rgba(34, 42, 53, 0.09);
+	--canvas-hair-strong: rgba(34, 42, 53, 0.14);
+
+	// Semantic states.
+	--canvas-success: #00811d;
+	--canvas-success-tint: #edf7ee;
+	--canvas-warning: #886b00;
+	--canvas-warning-tint: #faf3df;
+	--canvas-error: #b32d2e;
+	--canvas-error-tint: #fcf0f1;
+
+	// Shape and depth.
+	--canvas-radius-lg: 16px;
+	--canvas-radius: 12px;
+	--canvas-radius-sm: 8px;
+	--canvas-radius-pill: 999px;
+	--canvas-radius-round: 50%;
+	--canvas-shadow: 0 0 0 1px rgba(34, 42, 53, 0.05), 0 1px 2px rgba(34, 42, 53, 0.04), 0 4px 10px -5px rgba(34, 42, 53, 0.12);
+	--canvas-shadow-hi: 0 0 0 1px rgba(34, 42, 53, 0.07), 0 2px 6px rgba(34, 42, 53, 0.05), 0 16px 34px -12px rgba(19, 19, 22, 0.24);
+	--canvas-shadow-control: var(--canvas-shadow);
+	--canvas-shadow-card: var(--canvas-shadow);
+	--canvas-shadow-card-hover: var(--canvas-shadow-hi);
+	--canvas-shadow-popover: var(--canvas-shadow-hi);
+	--canvas-page-wash: linear-gradient(180deg, rgba(217, 236, 249, 0.95) 0%, rgba(232, 243, 251, 0.6) 26%, rgba(240, 246, 251, 0.32) 46%, rgba(255, 255, 255, 0) 74%);
+
+	// Spacing and layout.
+	--canvas-space-2xs: 4px;
+	--canvas-space-xs: 8px;
+	--canvas-space-sm: 12px;
+	--canvas-space-md: 16px;
+	--canvas-space-lg: 24px;
+	--canvas-space-xl: 32px;
+	--canvas-space-2xl: 40px;
+	--canvas-stack-card: 14px;
+	--canvas-stack-section: 40px;
+	--canvas-control-h: 40px;
+	--canvas-sidebar-w: 300px;
+	--canvas-gutter: 14px;
+
+	// Motion registry: press is tactile control feedback; hover is a local
+	// affordance change; route is view enter; reveal is page and data entrance;
+	// chart is KPI count-up; ring is a long-form SVG stroke draw; shimmer is the
+	// loading skeleton. Every motion needs a reduced-motion final state.
+	--canvas-duration-press: 120ms;
+	--canvas-duration-hover: 160ms;
+	--canvas-duration-route: 150ms;
+	--canvas-duration-reveal: 400ms;
+	--canvas-duration-chart: 650ms;
+	--canvas-duration-ring: 1100ms;
+	--canvas-duration-shimmer: 1200ms;
+	--canvas-duration-reduced: 1ms;
+	--canvas-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--canvas-ease-out: cubic-bezier(0, 0, 0.2, 1);
+	--canvas-ease-snap: cubic-bezier(0.215, 0.61, 0.355, 1);
+
+	// One soft, radius-following focus ring derived from the accent: visible for
+	// a11y but calm, never the hard 2px solid line that reads as a warning.
+	--canvas-focus-ring: color-mix(in srgb, var(--canvas-accent) 34%, transparent);
+	--canvas-focus-ring-dark: rgba(116, 184, 235, 0.72);
+
+	// Type roles. Canvas ships no font files: the roles are the contract and the
+	// faces are each plugin's own. See DESIGN.md to add self-hosted OFL faces.
+	--canvas-font-display: -apple-system, blinkmacsystemfont, "Segoe UI", sans-serif;
+	--canvas-font-serif: "Iowan Old Style", palatino, georgia, serif;
+	--canvas-font-mono: ui-monospace, "SFMono-Regular", menlo, consolas, monospace;
+	--canvas-font-body: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif;
+
+	// Re-anchor wp-admin's theme color to the plugin accent within this scope so
+	// every @wordpress/components control renders in the plugin palette instead
+	// of whichever admin color scheme the install happens to use. These seven
+	// names are WordPress's, not ours: never prefix or rename them.
+	--wp-admin-theme-color: var(--canvas-accent);
+	--wp-admin-theme-color-darker-10: var(--canvas-accent-hover);
+	--wp-admin-theme-color-darker-20: var(--canvas-accent-deep);
+	--wp-admin-border-width-focus: 1px;
+	--wp-components-color-accent: var(--canvas-accent);
+	--wp-components-color-accent-darker-10: var(--canvas-accent-hover);
+	--wp-components-color-accent-darker-20: var(--canvas-accent-deep);
+}

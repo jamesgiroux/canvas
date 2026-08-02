@@ -4,7 +4,7 @@ Tags: framework, starter, react, rest-api, admin
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.3
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,11 @@ No. It is a developer scaffold. Use the initialization script to turn it into
 your own plugin.
 
 == Changelog ==
+
+= 1.1.0 =
+* Adds the Atelier Canvas editorial design system with one token layer, eight SCSS partials, five new primitives, and an animated MetricCard.
+* Adds token and rename guards, an in-admin style guide, DESIGN.md, and eight design skills.
+* Breaking: constants/design.js is removed, and Badge no longer accepts style overrides through BADGE_VARIANTS.
 
 = 1.0.0 =
 * Initial release: React admin, REST API, model layer, migrations, and tooling.

@@ -10,6 +10,7 @@ import { __ } from '@wordpress/i18n';
 import { useEffect, useMemo } from '@wordpress/element';
 import { Notice } from '@wordpress/components';
 import MetricCard from '../components/primitives/MetricCard';
+import PageHeader from '../components/primitives/PageHeader';
 import { useItems } from '../hooks';
 
 /**
@@ -39,17 +40,13 @@ export default function Dashboard( { onNavigate } ) {
 
 	return (
 		<div className="canvas-page-content">
-			{/* Page Header */}
-			<div className="canvas-page-header">
-				<div className="canvas-page-header-content">
-					<h1 className="canvas-page-title">
-						{ __( 'Dashboard', 'canvas' ) }
-					</h1>
-					<p className="canvas-page-description">
-						{ __( 'Overview of your items and recent activity.', 'canvas' ) }
-					</p>
-				</div>
-			</div>
+			<PageHeader
+				title={ __( 'Dashboard', 'canvas' ) }
+				description={ __(
+					'Overview of your items and recent activity.',
+					'canvas'
+				) }
+			/>
 
 			{ error && (
 				<Notice status="error" isDismissible={ false }>

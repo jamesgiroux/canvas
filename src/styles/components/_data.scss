@@ -1,0 +1,154 @@
+/**
+ * Data display
+ *
+ * Rows separate by hairline and hover tint. No zebra striping. Charts are
+ * monochrome with a single accent marking the one series that matters, so the
+ * eye finds the signal.
+ */
+
+.canvas-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.canvas-table th {
+	padding: var(--canvas-space-xs) var(--canvas-space-sm);
+	border-bottom: 1px solid var(--canvas-hair-strong);
+	font-family: var(--canvas-font-mono);
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--canvas-ink-3);
+	text-align: left;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+}
+
+.canvas-table td {
+	padding: var(--canvas-space-sm);
+	border-bottom: 1px solid var(--canvas-hair);
+	color: var(--canvas-ink);
+	font-variant-numeric: tabular-nums;
+}
+
+.canvas-table tbody tr {
+	transition: background-color var(--canvas-duration-hover) var(--canvas-ease-out);
+}
+
+.canvas-table tbody tr:hover {
+	background: var(--canvas-row-hover);
+}
+
+.canvas-metric-grid {
+	display: grid;
+	grid-template-columns: var(--canvas-metric-columns, repeat(4, 1fr));
+	gap: var(--canvas-space-md);
+}
+
+.canvas-metric-card__body {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--canvas-space-md);
+}
+
+.canvas-metric-card__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 48px;
+	background: var(--canvas-surface-tint);
+	border-radius: var(--canvas-radius-sm);
+	color: var(--canvas-accent);
+}
+
+.canvas-metric-card__content {
+	flex: 1;
+}
+
+.canvas-metric-card__label {
+	display: block;
+	margin-bottom: var(--canvas-space-xs);
+	font-size: 12px;
+	color: var(--canvas-ink-2);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.canvas-metric-card__value {
+	display: block;
+	font-family: var(--canvas-font-display);
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 1.1;
+	color: var(--canvas-ink);
+	letter-spacing: -0.02em;
+}
+
+.canvas-metric-card__loading {
+	display: flex;
+	min-height: 32px;
+	align-items: center;
+}
+
+.canvas-metric-card__trend {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--canvas-space-2xs);
+	margin-top: var(--canvas-space-xs);
+	font-family: var(--canvas-font-mono);
+	font-size: 11px;
+}
+
+.canvas-metric-card__trend--up {
+	color: var(--canvas-success);
+}
+
+.canvas-metric-card__trend--down {
+	color: var(--canvas-error);
+}
+
+.canvas-metric-card__trend--neutral {
+	color: var(--canvas-ink-3);
+}
+
+.canvas-metric-card--success .canvas-metric-card__icon {
+	background: var(--canvas-success-tint);
+	color: var(--canvas-success);
+}
+
+.canvas-metric-card--warning .canvas-metric-card__icon {
+	background: var(--canvas-warning-tint);
+	color: var(--canvas-warning);
+}
+
+.canvas-metric-card--error .canvas-metric-card__icon {
+	background: var(--canvas-error-tint);
+	color: var(--canvas-error);
+}
+
+.canvas-metric-card--info .canvas-metric-card__icon {
+	background: var(--canvas-accent-tint);
+	color: var(--canvas-accent);
+}
+
+@media (max-width: 900px) {
+
+	.canvas-metric-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 480px) {
+
+	.canvas-metric-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.canvas-table tbody tr {
+		transition: none;
+	}
+}

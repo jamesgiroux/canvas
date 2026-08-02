@@ -1,14 +1,13 @@
 /**
  * Badge Component
  *
- * Displays status or category badges with semantic colors.
- * Supports multiple variants for different contexts.
+ * Displays status or category badges with semantic colors. Variants resolve
+ * from tokens in _badge.scss, with no inline styles.
  *
  * @package Canvas
  */
 
 import { __ } from '@wordpress/i18n';
-import { BADGE_VARIANTS } from '../../constants/design';
 
 /**
  * Badge component.
@@ -26,15 +25,6 @@ export default function Badge( {
 	size = 'medium',
 	className = '',
 } ) {
-	// Get variant styles or fall back to default.
-	const variantStyles = BADGE_VARIANTS[ variant ] || BADGE_VARIANTS.default;
-
-	const style = {
-		backgroundColor: variantStyles.background,
-		color: variantStyles.color,
-		borderColor: variantStyles.border,
-	};
-
 	const classes = [
 		'canvas-badge',
 		`canvas-badge--${ variant }`,
@@ -44,11 +34,7 @@ export default function Badge( {
 		.filter( Boolean )
 		.join( ' ' );
 
-	return (
-		<span className={ classes } style={ style }>
-			{ children }
-		</span>
-	);
+	return <span className={ classes }>{ children }</span>;
 }
 
 /**

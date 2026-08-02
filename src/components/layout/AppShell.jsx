@@ -7,7 +7,14 @@
  * @package Canvas
  */
 
-import { useState, useEffect, useRef, useCallback } from '@wordpress/element';
+import {
+	lazy,
+	Suspense,
+	useState,
+	useEffect,
+	useRef,
+	useCallback,
+} from '@wordpress/element';
 import { SnackbarList } from '@wordpress/components';
 import { useSelect, useDispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
@@ -22,6 +29,13 @@ import Settings from '../../pages/Settings';
 
 // Register stores
 import '../../store';
+
+// The style guide is registered only under WP_DEBUG, so it is unreachable on a
+// production site. Loading it lazily keeps its code and its stylesheet in a
+// separate chunk that production never fetches.
+const StyleGuide = lazy( () =>
+	import( /* webpackChunkName: "canvas-style-guide" */ '../../pages/StyleGuide' )
+);
 
 /**
  * Parse hash URL for sub-routing within a page.
@@ -133,6 +147,22 @@ export default function AppShell() {
 		// Settings page.
 		if ( page === 'canvas-settings' ) {
 			return <Settings />;
+		}
+
+		// Development-only style guide page, loaded on demand.
+		if ( page === 'canvas-style-guide' ) {
+			return (
+				<Suspense
+					fallback={
+						<div
+							aria-busy="true"
+							className="canvas-loading"
+						/>
+					}
+				>
+					<StyleGuide />
+				</Suspense>
+			);
 		}
 
 		// Default fallback.
